@@ -1,0 +1,14 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+@layer utilities{
+    .playwrite-cu-heading {
+        font-family: "Playwrite CU", cursive;
+        font-optical-sizing: auto;
+        font-weight: 400;
+        font-style: normal;
+        background: linear-gradient(90deg, #ff00cc, #333399, #66ccff);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+      }
+  }
