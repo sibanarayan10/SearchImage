@@ -90,7 +90,7 @@ const loginUser = async (req, res) => {
     }
     const isPasswordValid = await user.isPasswordCorrect(Password);
     if (!isPasswordValid) {
-      return res.status(400).json(new ApiError(400,"Please enter the right password"));
+      return res.status(400).json(new ApiError(400,"Please enter the correct password"));
     }
     const { accessToken, refreshToken } = await generateAccessAndRefereshTokens(user._id);
     
