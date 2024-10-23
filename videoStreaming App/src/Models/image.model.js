@@ -10,7 +10,7 @@ const imageSchema = new Schema({
         required: true
     },
     owner: {
-        type: Schema.Types.ObjectId,
+        type: Schema.Types.Mixed,
         ref: User
     },
     cloudinary_Assetid: {

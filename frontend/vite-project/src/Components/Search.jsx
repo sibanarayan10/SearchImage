@@ -7,7 +7,7 @@ const SearchComponent = ({ setResponse }) => {
   const [loading, setLoading] = useState(false); // To manage loading state
   const [error, setError] = useState(""); 
 
-
+console.log(searchTerm);
   const handleInputChange = (event) => {
     setSearchTerm(event.target.value);
   };
@@ -33,7 +33,7 @@ const SearchComponent = ({ setResponse }) => {
           validateStatus: (status) => status > 0,
         }
       );
-      console.log(response);
+    
       if (response.status === 200) {
         setResponse(response.data.data);  
       } else {

@@ -2,11 +2,13 @@ import React, { useState } from 'react';
 import { Link,useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
+
+// { Email: 'sibanarayan4@gmail.com', Password: 'mshiv001' } current login user
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-const navigate=useNavigate();
+const navigate=useNavigate("");
   const handleSubmit = async (e) => {
     e.preventDefault();
     // Handle login form submission here
@@ -26,12 +28,13 @@ const navigate=useNavigate();
         },
        
       });
-      console.log(response)
+      
     //  if(response.data.success){
     //   navigate('/')
     //  };
-      if(response.success!=true){
-
+    console.log(response);
+      if(response.status===200){
+navigate('/');
       } // Handle response from server
     } catch (error) {
       console.log("Entering to the error section :")
