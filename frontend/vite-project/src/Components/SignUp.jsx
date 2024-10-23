@@ -45,40 +45,24 @@ const SignUp = () => {
       console.error('Error signing up:', error);
     }
   };
- useEffect(()=>{
-   const fetchData=async()=>{
-  const response=await axios.get('http://localhost:3000/api/user/signUp_google',{
-    headers:{
-      'Content-Type': 'application/json'
-},
-    withCredentials:true,
-    validateStatus:function(status){
-      return status>0;
-    }
-  });
-  if(response.status==200){
-    setUrl(response.data.data);
-  };}
-  fetchData();
-
-},[]);
-// useEffect(()=>{
-//   const fetchData=async()=>{
-//  const response=await axios.get('http://localhost:3000/api/user/oauthcallback',{
-//    headers:{
-//      'Content-Type': 'application/json'
-// },
-//    withCredentials:true,
-//    validateStatus:function(status){
-//      return status>0;
-//    }
-//  });
-//  if(response.status==200){
-//    navigate('/');
-//  };}
-//  fetchData();
-
-// },[]);
+  const initiateGoogleOAuth = () => {
+    const clientId = "657723989899-s70v2mgjbhcvcoacm58h1f71to84b878.apps.googleusercontent.com";
+    const redirectUri = 'http://localhost:3000/api/user/oauthcallback'; // Your backend callback URL
+    const scopes = [
+      'https://www.googleapis.com/auth/userinfo.profile',
+      'https://www.googleapis.com/auth/userinfo.email'
+    ].join(' '); 
+    const responseType = 'code';
+    const accessType = 'offline'; 
+  
+   
+    const oauthUrl = `https://accounts.google.com/o/oauth2/v2/auth?response_type=${responseType}&client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${encodeURIComponent(scopes)}&access_type=${accessType}`;
+  
+    window.location.href = oauthUrl;
+  };
+  
+  // Call this function when the user clicks the "Login with Google" button
+  
   return (
     <div className="flex flex-col lg:flex-row mx-auto w-full lg:w-11/12 h-full lg:h-screen justify-between my-3 bg-slate-50 z-10">
       {/* Left Side Form */}
@@ -192,7 +176,7 @@ const SignUp = () => {
         <div className="flex flex-col items-center space-y-3 mt-4">
           <button className="flex justify-center items-center w-full lg:w-11/12 py-1 bg-white border border-black text-black font-bold rounded-full">
             <img src="../logo-color.png" className="h-5 w-5 mr-2" alt="Google Logo" />
-           <Link to={url}> Sign Up With Google</Link>
+           <Link onClick={initiateGoogleOAuth}> Sign Up With Google</Link>
           </button>
           <p>Or</p>
           <p>Already Have an Account? <Link className="text-blue-800" to='/sign-in'>Sign In</Link></p>
