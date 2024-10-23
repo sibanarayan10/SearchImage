@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import SignUp from './Components/SignUp';
 import Login from './Components/Login';
 import Navbar from './Components/Navbar';
+import RecentlySearched from './Components/RecentlySearched';
 import Upload from './Components/Upload';
 import Home from './Components/Home';
 import useApi from './Hooks/useApi';
@@ -47,6 +48,7 @@ const { response, error: responseError } = useApi("http://localhost:3000/api/ima
         <Route path="/sign-up" element={<SignUp/>} />
         <Route path="/sign-in" element={<Login/>} />
         <Route path="/upload" element={<Upload/>} />
+<Route path="recent" element={<RecentlySearched/>}/>
         <Route path="/uploads" element={<Home data={data.response} />} />
         <Route path="/About" element={<About/>}/>
       </Routes>

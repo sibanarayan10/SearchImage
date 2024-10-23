@@ -26,11 +26,11 @@ console.log(searchTerm);
     try {
       const response = await axios.post(
         "http://localhost:3000/api/image/getImage", 
-        { desc: searchTerm }, 
+        {desc: searchTerm}, 
         {
-          headers: { 'Content-Type': 'application/json' },
-          withCredentials: true,
-          validateStatus: (status) => status > 0,
+          headers: {'Content-Type': 'application/json'},
+          withCredentials:true,
+          validateStatus:(status) => status > 0,
         }
       );
     

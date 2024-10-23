@@ -244,7 +244,7 @@ const addImage = async (req, res) => {
       cloudinary_Assetid: upload.asset_id,
       cloudinary_publicId: upload.public_id
     });
-
+console.log(image);
     await image.save();
 
     return res.status(200).json({ message: "Image uploaded successfully" });
