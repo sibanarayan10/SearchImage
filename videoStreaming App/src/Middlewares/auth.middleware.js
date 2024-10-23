@@ -4,27 +4,34 @@ import jwt from "jsonwebtoken"
 import { User } from "../Models/user.model.js"
 import { ApiError } from "../Utils/ApiError.js"
 import { ApiResponse } from "../Utils/ApiResponse.js"
+import { decode } from "punycode"
 
-export const verifyJWT = async(req, _, next) => {
-    console.log("auth")
+export const verifyJWT = async (req, _, next) => {
+
     try {
         const token = req.cookies?.accessToken || req.header("Authorization")?.replace("Bearer ", "")
-        
-        
+
+
         if (!token) {
-            return res.status(401).json(new ApiResponse(401,"Please Sign-in to continue!"))
+            return res.status(401).json(new ApiResponse(401, "Please Sign-in to continue!"))
         }
-    const decodedToken = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET)
-    
-    const user = await User.findById(decodedToken?._id).select("-password -refreshToken")
-    if (!user) {
-            throw new ApiError(401, "Invalid Access Token")
+        const payload = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET)
+        // console.log("payload is", payload);
+        if (!payload.googleAuthenticated) {
+            const user = await User.findById(payload?._id).select("-password -refreshToken")
+            if (!user) {
+                throw new ApiError(401, "Invalid Access Token")
+            }
+            req.user = user;
+        } else {
+            req.user = payload;
+            req.user._id = payload._id.path;
+           
         }
-    req.user = user;
-    next()
+        next()
     } catch (error) {
-        console.log("Enterign to the error section")
-        throw new ApiError(401, error?.message || "Invalid access token")
+      
+        return new ApiError(401, error?.message || "Invalid access token");
     }
-    
+
 }

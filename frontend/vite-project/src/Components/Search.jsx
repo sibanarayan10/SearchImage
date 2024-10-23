@@ -7,7 +7,7 @@ const SearchComponent = ({ setResponse }) => {
   const [loading, setLoading] = useState(false); // To manage loading state
   const [error, setError] = useState(""); 
 
-
+console.log(searchTerm);
   const handleInputChange = (event) => {
     setSearchTerm(event.target.value);
   };
@@ -26,14 +26,14 @@ const SearchComponent = ({ setResponse }) => {
     try {
       const response = await axios.post(
         "http://localhost:3000/api/image/getImage", 
-        { desc: searchTerm }, 
+        {desc: searchTerm}, 
         {
-          headers: { 'Content-Type': 'application/json' },
-          withCredentials: true,
-          validateStatus: (status) => status > 0,
+          headers: {'Content-Type': 'application/json'},
+          withCredentials:true,
+          validateStatus:(status) => status > 0,
         }
       );
-      console.log(response);
+    
       if (response.status === 200) {
         setResponse(response.data.data);  
       } else {

@@ -19,7 +19,7 @@ const Upload = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!image) {
       setMessage("Please select an image to upload.");
       return;
@@ -64,10 +64,10 @@ const Upload = () => {
   };
 
   return (
-    <div className="flex items-center justify-center h-screen bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400">
+    <div className="flex items-center justify-center h-screen bg-gradient-to-r from-gray-900 via-gray-800 to-gray-700">
       <form 
         onSubmit={handleSubmit} 
-        className="bg-white p-8 rounded shadow-md w-full max-w-md"
+        className="bg-gray-800 p-8 rounded shadow-md w-full max-w-md text-white"
       >
         <h2 className="text-2xl font-bold mb-6 text-center">Upload an Image</h2>
 
@@ -78,7 +78,7 @@ const Upload = () => {
           name="Title"
           value={title} 
           onChange={(e) => setTitle(e.target.value)} 
-          className="block w-full text-gray-700 py-2 px-3 border border-gray-300 rounded mb-4 focus:outline-none focus:ring focus:border-blue-300"
+          className="block w-full bg-gray-700 text-white py-2 px-3 border border-gray-600 rounded mb-4 focus:outline-none focus:ring focus:border-blue-300"
         />
 
         {/* Description Input */}
@@ -87,7 +87,7 @@ const Upload = () => {
           name="Description"
           value={description}
           onChange={(e) => setDescription(e.target.value)}
-          className="block w-full text-gray-700 py-2 px-3 border border-gray-300 rounded mb-4 focus:outline-none focus:ring focus:border-blue-300"
+          className="block w-full bg-gray-700 text-white py-2 px-3 border border-gray-600 rounded mb-4 focus:outline-none focus:ring focus:border-blue-300"
           rows="3"
         ></textarea>
 
@@ -96,18 +96,18 @@ const Upload = () => {
           type="file"
           name="Image"
           onChange={handleImageChange} 
-          className="block w-full text-gray-700 py-2 px-3 border border-gray-300 rounded mb-4 focus:outline-none focus:ring focus:border-blue-300"
+          className="block w-full bg-gray-700 text-white py-2 px-3 border border-gray-600 rounded mb-4 focus:outline-none focus:ring focus:border-blue-300"
         />
 
         {/* Image Preview */}
         {preview && (
           <div className="mt-4">
-            <p className="text-sm font-medium text-gray-700 mb-2">Preview:</p>
+            <p className="text-sm font-medium text-gray-300 mb-2">Preview:</p>
             <img src={preview} alt="Image Preview" className="w-full h-48 object-cover rounded-lg shadow-md" />
             <button 
               type="button" 
               onClick={handleClear}
-              className="mt-4 w-full bg-red-500 text-white py-2 px-4 rounded hover:bg-red-600 transition-colors"
+              className="mt-4 w-full bg-red-600 text-white py-2 px-4 rounded hover:bg-red-700 transition-colors"
             >
               Clear Image
             </button>
@@ -117,7 +117,7 @@ const Upload = () => {
         {/* Upload Button */}
         <button 
           type="submit" 
-          className={`w-full bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600 transition-colors ${uploading ? 'cursor-not-allowed opacity-50' : ''}`}
+          className={`w-full bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 transition-colors ${uploading ? 'cursor-not-allowed opacity-50' : ''}`}
           disabled={uploading}
         >
           {uploading ? 'Uploading...' : 'Upload Image'}
@@ -125,12 +125,12 @@ const Upload = () => {
 
         {/* Progress or Message */}
         {uploading && (
-          <div className="mt-4 text-center text-blue-500">
+          <div className="mt-4 text-center text-blue-400">
             Uploading your file, please wait...
           </div>
         )}
         {message && (
-          <p className="mt-4 text-center text-gray-700">{message}</p>
+          <p className="mt-4 text-center text-gray-300">{message}</p>
         )}
       </form>
     </div>
