@@ -2,8 +2,8 @@
 
 ## Overview
 searchImage is a full-stack MERN-based application that allows users to upload, manage, and search for images efficiently. The application utilizes Google OAuth 2.0 for secure user authentication and employs various technologies for enhanced performance and user experience.
-![Project Preview](assets/image2.png)
 ![Project Preview](assets/image1.png)
+![Project Preview](assets/image2.png)
 
 
 ## Features
