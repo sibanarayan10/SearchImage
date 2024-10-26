@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link,useNavigate } from 'react-router-dom';
+import { Link,useNavigate,useLocation } from 'react-router-dom';
 import axios from 'axios';
 
 
@@ -7,7 +7,8 @@ import axios from 'axios';
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-
+const location=useLocation();
+console.log(location.state)
 const navigate=useNavigate("");
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -18,7 +19,7 @@ const navigate=useNavigate("");
         Email:email,
         Password:password
       }
-      const response = await axios.post('http://localhost:3000/api/user/Login',data, {
+      const response = await axios.post('http://localhost:3000/api/user/login',data, {
         headers: {
           'Content-Type': 'application/json'
         },
@@ -34,7 +35,7 @@ const navigate=useNavigate("");
     //  };
     console.log(response);
       if(response.status===200){
-navigate('/');
+navigate('/',{state:{name:"sibanarayan"}});
       } // Handle response from server
     } catch (error) {
       console.log("Entering to the error section :")

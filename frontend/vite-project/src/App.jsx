@@ -5,6 +5,7 @@ import Navbar from './Components/Navbar';
 import RecentlySearched from './Components/RecentlySearched';
 import Upload from './Components/Upload';
 import Home from './Components/Home';
+import ErrorPage from './Components/ErrorPage';
 import useApi from './Hooks/useApi';
 import About from './Components/About';
 import { useState } from 'react';
@@ -33,7 +34,7 @@ const { response, error: responseError } = useApi("http://localhost:3000/api/ima
   const [data1,setData]=useState([]);
   // setData(response);
   // console.log("http://localhost:3000/api/image/getAll :",data1)
-  const data=useApi("http://localhost:3000/api/user/getImages");
+  const data=useApi("http://localhost:3000/api/user/images");
  console.log("in the entry page",data1);
 
 
@@ -43,14 +44,15 @@ const { response, error: responseError } = useApi("http://localhost:3000/api/ima
     <Router>
       <Navbar setResponse={setData} />
       <Routes>
-        <Route path='/' element={<Home data={data1.length==0?response:data1 } />} />
+        <Route path='/' element={<Home data={data1.length==0?response:data1 } DeleteAndEdit={false} />} />
         {/* <Route path='/search' element={<Home data={responses.length>0?responses:response} />} /> */}
         <Route path="/sign-up" element={<SignUp/>} />
         <Route path="/sign-in" element={<Login/>} />
         <Route path="/upload" element={<Upload/>} />
 <Route path="recent" element={<RecentlySearched/>}/>
-        <Route path="/uploads" element={<Home data={data.response} />} />
+        <Route path="/uploads" element={<Home data={data.response} DeleteAndEdit={true}/>} />
         <Route path="/About" element={<About/>}/>
+        <Route path='/error' element={<ErrorPage/>}/>
       </Routes>
     </Router>
   );

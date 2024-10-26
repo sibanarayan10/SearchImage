@@ -24,7 +24,7 @@ const generateAccessAndRefereshTokens = async (userId) => {
 const SignUp = async (req, res) => {
   // Extract form data and file
   const { FirstName, LastName, PhoneNumber, Password, confirmPassword, Email } = req.body;
-try {
+  try {
     // Validate fields
     if ([FirstName, LastName, PhoneNumber, Password, confirmPassword, Email].some(item => !item.trim())) {
       return res.status(400).json(new ApiError(400, "All fields are required!"));
@@ -71,7 +71,7 @@ try {
 
 const loginUser = async (req, res) => {
   const { Email, Password } = req.body;
-  console.log(Email,Password);
+  console.log(Email, Password);
   console.log(typeof Password);
 
   try {
@@ -123,58 +123,60 @@ const updateProfile = async (req, res) => {
 
 }
 const redirectURL = async (req, res) => {
+  
   const authUrl = oauth2Client.generateAuthUrl({
     access_type: 'offline',
-    scope: ['https://www.googleapis.com/auth/userinfo.profile'],
+    scope: ['https://www.googleapis.com/auth/userinfo.profile',
+    'https://www.googleapis.com/auth/userinfo.email']
   });
 
-  res.redirect(authUrl);
+  res.send(authUrl);
 }
 
 /**in this google authentication what we are doing is if the user is previously logged in the google, we are just fetching that data instead of authentcating the user again,
  * As during the authentication google is providing us with some refreshtoken and accesstoken, instead of creating again the accesstoken and refresh token what we are doing is we setting cookie for accesstoken and refresh token and by keeping the data, we are also manipulating the req object.
  */
 const oauthCallback = async (req, res) => {
-  const { code } = req.query;
   
+  const { code } = req.query;
+
   if (!code) {
     return res.status(500).json({ error: "Google authentication failed!" });
   }
 
   try {
-    // Exchange the authorization code for an access token and refresh token
+   
     const { tokens } = await oauth2Client.getToken(code);
     console.log("Access Token and Refresh Tokens:", tokens);
 
-    // Set the credentials on the OAuth2 client
+    
     oauth2Client.setCredentials(tokens);
 
-    // Fetch the user's profile information from Google
     const userInfoResponse = await oauth2Client.request({
       url: 'https://www.googleapis.com/userinfo/v2/me',
     });
 
-   
-    console.log("User Info:", userInfoResponse);
-    const userData=userInfoResponse.data;
-    const userId=userData.id;
-    const accessToken=jwt.sign({
-      _id:new ObjectId(userId),
 
-      FirstName:userData.given_name,
-      LastName:userData.family_name,
-      Email:userData.email,
-      googleAuthenticated:true,
-    },process.env.ACCESS_TOKEN_SECRET,{
-      expiresIn:process.env.ACCESS_TOKEN_EXPIRY
+    console.log("User Info:", userInfoResponse);
+    const userData = userInfoResponse.data;
+    const userId = userData.id;
+    const accessToken = jwt.sign({
+      _id: new ObjectId(userId),
+
+      FirstName: userData.given_name,
+      LastName: userData.family_name,
+      Email: userData.email,
+      googleAuthenticated: true,
+    }, process.env.ACCESS_TOKEN_SECRET, {
+      expiresIn: process.env.ACCESS_TOKEN_EXPIRY
     })
-    const refreshToken=jwt.sign({
-      _id:new ObjectId(userId),
-      FirstName:userData.given_name,
-      LastName:userData.Family_name,
-      Email:userData.email
-    },process.env.REFRESH_TOKEN_SECRET,{
-      expiresIn:process.env.REFRESH_TOKEN_EXPIRY
+    const refreshToken = jwt.sign({
+      _id: new ObjectId(userId),
+      FirstName: userData.given_name,
+      LastName: userData.Family_name,
+      Email: userData.email
+    }, process.env.REFRESH_TOKEN_SECRET, {
+      expiresIn: process.env.REFRESH_TOKEN_EXPIRY
     })
 
     // Optionally, save the user info and tokens in your database here
@@ -183,13 +185,13 @@ const oauthCallback = async (req, res) => {
     // Set cookies for access token and refresh token
     res.cookie("accessToken", accessToken, {
       httpOnly: true, // Helps mitigate the risk of client-side script accessing the protected cookie
- // Use secure cookies in production
+      // Use secure cookies in production
       maxAge: 3600 * 24000, // 1 day expiration
     });
 
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
-    
+
       maxAge: 30 * 24 * 3600 * 1000, // 30 days expiration
     });
 
@@ -204,7 +206,7 @@ const oauthCallback = async (req, res) => {
 const getAllImage = async (req, res) => {
   try {
     const user = req.user;
-// console.log(user);
+    // console.log(user);
     if (!user) {
       return res.status(401).json(new ApiResponse(401, null, "User not Authenticated!"));
     }
@@ -214,7 +216,7 @@ const getAllImage = async (req, res) => {
     if (img.length === 0) {
       return res.status(404).json(new ApiResponse(404, null, "No images found. Please upload an image."));
     }
-
+    console.log(img)
     return res.status(200).json(new ApiResponse(200, img, "Images fetched successfully."));
   } catch (error) {
     console.error(error); // Log the error for debugging
@@ -244,7 +246,7 @@ const addImage = async (req, res) => {
       cloudinary_Assetid: upload.asset_id,
       cloudinary_publicId: upload.public_id
     });
-console.log(image);
+    console.log(image);
     await image.save();
 
     return res.status(200).json({ message: "Image uploaded successfully" });
@@ -255,19 +257,75 @@ console.log(image);
 };
 
 const deleteAll = async (req, res) => {
-  const img=await Image.find({owner:req.user});
+  const img = await Image.find({ owner: req.user });
   return img;
 
 
 }
 const deleteUsers = async (req, res) => {
   try {
-    const result = await User.deleteMany(); // Deletes all documents in the User collection
+    const result = await User.deleteMany(); 
     res.status(200).json({ message: 'All users deleted successfully', result });
   } catch (error) {
     res.status(500).json({ message: 'Error deleting users', error: error.message });
   }
 };
+const deleteImage = async (req, res) => {
+  try {
+    const {imgId} = req.params;
+    console.log("params",req.params);
+    if(!imgId){
+      return res.status(400).json(new ApiError(400,"something went wrong"))
+    }
+    console.log("Image ID to delete:", imgId);
+    
+    const result = await Image.deleteOne({ _id: imgId });
+    if (result.deletedCount === 1) {
+      return res.status(200).json(new ApiResponse(200, "Image deleted successfully"));
+    }
 
+    return res.status(404).json(new ApiError(404, "Image not found"));
+  } catch (error) {
+    console.error("Error deleting image:", error);
+    return res.status(500).json(new ApiError(500, "Something went wrong! Try again after some time"));
+  }
+};
+const editImage = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { title, desc } = req.body;
+    console.log(title,desc);
+    const updatedImage = await Image.findByIdAndUpdate(
+      id,
+      {
+        ...(title !== undefined && title !== "" && { Title: title }),
+        ...(desc !== undefined && desc !== "" && { Description: desc })
+      },
+      { returnDocument: "after" } // `new: true` ensures the returned document is the updated one
+    );
 
-export { redirectURL, oauthCallback, SignUp, loginUser, getAllImage, deleteAll, updateProfile, addImage,deleteUsers };
+    if (!updatedImage) {
+      return res.status(404).json(new ApiError(404, "Image not found"));
+    }
+
+    console.log("Updated Image:", updatedImage);
+    return res.status(200).json(new ApiResponse(200, updatedImage, "Updated Successfully."));
+  } catch (error) {
+    console.error("Error updating image:", error);
+    return res.status(502).json(new ApiError(502, "Something went wrong", error));
+  }
+};
+const getallUsers=async(req,res)=>{
+try{  const users=await User.find({});
+  return res.status(200).json(new ApiResponse(200,users));}
+catch(error){
+  return res.status(400).json(new ApiError(400,"something went wrong",error));}
+
+}
+
+export {
+  redirectURL, oauthCallback,
+  SignUp, loginUser, getAllImage,
+  deleteAll, updateProfile, addImage,
+  deleteUsers, deleteImage,editImage,getallUsers
+};

@@ -36,7 +36,7 @@ const Upload = () => {
     setUploading(true);
 
     try {
-      const response = await axios.post("http://localhost:3000/api/user/addImage", formData, {
+      const response = await axios.post("http://localhost:3000/api/user/images", formData, {
         headers: {
           "Content-Type": "multipart/form-data"
         },

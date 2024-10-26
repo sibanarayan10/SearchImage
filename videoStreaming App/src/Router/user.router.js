@@ -1,29 +1,46 @@
 import { Router } from "express";
-import { redirectURL,oauthCallback,SignUp,loginUser, getAllImage,addImage,deleteAll,deleteUsers} from "../Controller/user.controller.js";
+import {
+  redirectURL,
+  oauthCallback,
+  SignUp,
+  loginUser,
+  getAllImage,
+  addImage,
+  deleteAll,
+  deleteUsers,
+  deleteImage,
+  editImage,
+  getallUsers
+} from "../Controller/user.controller.js";
 import { verifyJWT } from "../Middlewares/auth.middleware.js";
 import { upload } from "../Middlewares/multer.middleware.js";
 
+const router = Router();
 
-// Over this router we are handling
-/**
- * user authentication
- * get user uploaded photo / upload user owned photo
- * user google authentication
- * 
- */
-const router=Router();
-router.route('/SignUp').post(SignUp);
-router.route('/Login').post(loginUser);
-
-router.route('/addImage').post(upload.single("Image"),verifyJWT,addImage);
-router.route('/signUp_google').get(redirectURL);
+// User authentication routes
+router.route('/signup').post(SignUp);
+router.route('/login').post(loginUser);
+// Google OAuth routes
+router.route('/google/signup').get(redirectURL);
 router.route('/oauthcallback').get(oauthCallback);
-router.route('/getImages').get(verifyJWT,getAllImage);
-router.route('/delete').delete(deleteUsers);
+
+// User data routes
+router.route('/users').get(getallUsers);
+router.use('/images',verifyJWT);
+router.route('/images').get(getAllImage);
+
+// Image upload and modification
+router.route('/images').post(upload.single("Image"), addImage);
+router.route('/images/:id').put(editImage);
+router.route('/images/:imgId').delete(deleteImage);
+
+
+// Admin or mass delete routes
 router.route('/deleteAll').delete(deleteAll);
-// router.route('/:userid/getImage').get(verifyJWT,getAllImage);
-// router.route('/:userId/updateProfile').post(verifyJWT,updateProfile);
-// router.route('/:userid/deleteImage').delete(verifyJWT,deleteImage);
+
+// Optional routes for further usage
+// router.route('/users/:userid/getImage').get(verifyJWT, getAllImage);
+// router.route('/users/:userId/updateProfile').post(verifyJWT, updateProfile);
+// router.route('/users/:userid/deleteImage').delete(verifyJWT, deleteImage);
 
 export default router;
-

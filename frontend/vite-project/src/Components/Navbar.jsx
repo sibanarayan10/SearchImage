@@ -1,6 +1,11 @@
 import React, { useState } from "react";
 import { Link } from 'react-router-dom';
 import SearchComponent from "./Search";
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+// import {fa-trash} from '@fortawesome/free-solid-svg-icons';
+// import {fa}
+import { faTrash } from "@fortawesome/free-solid-svg-icons";
+// import { faTrash } from '@fortawesome/free-solid-svg-icons';
 
 const Navbar = ({ setResponse }) => {
    const [isOpen, setIsOpen] = useState(false);
@@ -18,7 +23,7 @@ const Navbar = ({ setResponse }) => {
                   <Link to='/upload' className="w-full text-center text-gray-100 p-2 hover:bg-gray-800 rounded transition duration-300 mb-2 sm:mb-0 font-medium">Upload</Link>
                   <Link to='/uploads' className="w-full text-center text-gray-100 p-2 hover:bg-gray-800 rounded transition duration-300 mb-2 sm:mb-0 font-medium">Uploaded</Link>
                   <Link to='/Recent' className="w-full text-center text-gray-100 p-2 hover:bg-gray-800 rounded transition duration-300 mb-2 sm:mb-0 font-medium">Recently Searched</Link>
-                  <Link to='/About' className="w-full text-center text-gray-100 p-2 hover:bg-gray-800 rounded transition duration-300 font-medium">About</Link>
+                  <Link to='/About' className="w-full text-center text-gray-100 p-2 hover:bg-gray-800 rounded transition duration-300 font-medium"> About </Link>
                </div>
             </div>
 
