@@ -6,7 +6,7 @@ import { Image } from "../Models/image.model.js";
 import { ApiError } from "../Utils/ApiError.js";
 import { ApiResponse } from "../Utils/ApiResponse.js";
 import jwt from "jsonwebtoken"
-import { ObjectId } from "mongoose";
+
 
 const generateAccessAndRefereshTokens = async (userId) => {
   try {
@@ -17,7 +17,7 @@ const generateAccessAndRefereshTokens = async (userId) => {
     await user.save({ validateBeforeSave: false })
     return { accessToken, refreshToken }
   } catch (error) {
-    console.log("error happen at :")
+    console.log("error happen at :");
     throw new ApiError(500, "Something went wrong while generating referesh and access token")
   }
 }
@@ -67,12 +67,10 @@ const SignUp = async (req, res) => {
     return res.status(500).json(new ApiError(500, "Server is not responding for some reason.Try after some time", error));
   }
 };
-
-
 const loginUser = async (req, res) => {
   const { Email, Password } = req.body;
   console.log(Email, Password);
-  console.log(typeof Password);
+  
 
   try {
     if (!Email || !Password) {
@@ -96,14 +94,7 @@ const loginUser = async (req, res) => {
     }
     const options = {
       httpOnly: true,
-      // Use secure in production
-
-      // 1 day
     };
-
-    // Set cookies and return response
-
-    // console.log("hii")
     return res
       .status(200)
       .cookie("accessToken", accessToken, options)
@@ -124,11 +115,11 @@ const updateProfile = async (req, res) => {
 }
 const redirectURL = async (req, res) => {
   
-  const authUrl = oauth2Client.generateAuthUrl({
+const authUrl = oauth2Client.generateAuthUrl({
     access_type: 'offline',
     scope: ['https://www.googleapis.com/auth/userinfo.profile',
     'https://www.googleapis.com/auth/userinfo.email']
-  });
+});
 
   res.send(authUrl);
 }
@@ -196,7 +187,7 @@ const oauthCallback = async (req, res) => {
     });
 
     // Redirect to the frontend application
-    return res.redirect("http://localhost:5173/"); // Change to your frontend URL if different
+    return res.redirect("http://localhost:5176/"); // Change to your frontend URL if different
   } catch (error) {
     console.error('Error during authentication:', error.message);
     return res.status(500).send('Authentication failed');

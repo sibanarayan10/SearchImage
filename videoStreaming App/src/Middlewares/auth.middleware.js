@@ -5,9 +5,8 @@ import { User } from "../Models/user.model.js"
 import { ApiError } from "../Utils/ApiError.js"
 import { ApiResponse } from "../Utils/ApiResponse.js"
 import { decode } from "punycode"
-
 export const verifyJWT = async (req, _, next) => {
-console.log("within the authentication middleware");
+
     try {
         const token = req.cookies?.accessToken || req.header("Authorization")?.replace("Bearer ", "")
 

@@ -6,7 +6,6 @@ import { ApiResponse } from "../Utils/ApiResponse.js";
 
 
 
-
 const getSearchedImage = async (req, res) => {
 
     const { desc } = req.body;
@@ -63,6 +62,7 @@ const getAllImage = async (req, res) => {
         return res.status(500).json(new ApiResponse(500, "Error occurred while retrieving images from the database:", error));
     }
 };
+
 const deleteImage = async () => {
 
 }
