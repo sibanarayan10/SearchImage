@@ -4,12 +4,12 @@ import { faTrash, faEdit } from '@fortawesome/free-solid-svg-icons';
 import axios from "axios";
 
 
-const Home = ({ data, DeleteAndEdit }) => {
+const Home = ({data,DeleteAndEdit}) => {
 
   const [editFormId, setEditFormId] = useState(null);
   const [editFormData, setEditFormData] = useState({ title: "", desc: "" });
   
-  const removeItem = async (e) => {
+const removeItem = async (e) => {
     const imgId = e.currentTarget.id;
     console.log("Delete button clicked:", imgId);
     try {
