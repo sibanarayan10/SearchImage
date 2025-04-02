@@ -10,7 +10,7 @@ import { Context } from "../Context/globalContext";
 
 const Navbar = ({ setResponse, setLogout }) => {
   const [isOpen, setIsOpen] = useState(true);
-  const navItems = ["upload", "uploads", "about"];
+  const navItems = ["upload", "about"];
   const { userAuth } = useContext(Context);
   const [navigate, setNavigate] = useState("");
   const location = useLocation();
@@ -57,7 +57,7 @@ const Navbar = ({ setResponse, setLogout }) => {
             <div
               className={`relative top-full flex-col md:flex-row justify-center min-[768px]:flex items-center  md:w-2/3  nav-items ${
                 isOpen ? "flex " : "hidden"
-              } dropdown-drop   max-w-screen-2xl min-[475px]:left-1/2 md:left-0 max-[475px]:-right-full max-[768px]:w-screen`}
+              } dropdown-drop   max-w-screen-2xl min-[475px]:left-1/2 md:left-0 max-[475px]:-right-full max-[768px]:w-screen `}
             >
               {navItems.map((item, index) => (
                 <Link

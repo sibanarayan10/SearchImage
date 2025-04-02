@@ -46,9 +46,9 @@ const Upload = () => {
           headers: {
             "Content-Type": "multipart/form-data",
           },
-          withCredentials: true,
         }
       );
+      console.log(response.data);
       setMessage("File uploaded successfully!");
       setPreview(null);
       setImage(null);
@@ -56,6 +56,7 @@ const Upload = () => {
       setDescription("");
       setFilename("");
     } catch (error) {
+      console.log(error);
       setMessage("File upload failed. Please try again.");
     } finally {
       setUploading(false);

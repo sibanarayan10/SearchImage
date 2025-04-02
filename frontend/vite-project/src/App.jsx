@@ -38,12 +38,12 @@ const App = () => {
         {/* <Route path="/sign-up" element={<SignUp />} />
         <Route path="/sign-in" element={<Login />} /> */}
         <Route path="/upload" element={<Upload />} />
-        {data && (
+        {/* {data && (
           <Route
             path="/uploads"
             element={<Gallery data={data.data} DeleteAndEdit={true} />}
           />
-        )}
+        )} */}
         <Route path="/About" element={<About />} />
       </Routes>
     </Router>

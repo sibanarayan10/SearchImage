@@ -240,7 +240,6 @@ const getAllImage = async (req, res) => {
 
 const addImage = async (req, res) => {
   const { Title, Description } = req.body;
-  console.log(req.body);
   try {
     if (!Title) {
       return res.status(400).json({ error: "Title is a required field!" });
@@ -258,7 +257,6 @@ const addImage = async (req, res) => {
     const image = new Image({
       Title,
       Description,
-      owner: req.user._id,
       cloudinary_Assetid: upload.asset_id,
       cloudinary_publicId: upload.public_id,
     });

@@ -27,7 +27,6 @@ router.route("/oauthcallback").get(oauthCallback);
 
 router.route("/users").get(getallUsers);
 router.route("/log-out").get(verifyJWT, logoutUser);
-router.use("/images", verifyJWT);
 router.route("/images").get(getAllImage);
 
 router.route("/images").post(upload.single("Image"), addImage);
