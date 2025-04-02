@@ -47,7 +47,9 @@ process.on("SIGINT", async () => {
     process.exit(0);
   }
 });
-
+app.get("/", (req, res) => {
+  res.send("server is listening..");
+});
 // router set-up
 app.use("/api/user", userRouter);
 app.use("/api/image", imageRouter);
