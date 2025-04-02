@@ -1,14 +1,55 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-@layer utilities{
-    .playwrite-cu-heading {
-        font-family: "Playwrite CU", cursive;
-        font-optical-sizing: auto;
-        font-weight: 400;
-        font-style: normal;
-        background: linear-gradient(90deg, #ff00cc, #333399, #66ccff);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-      }
+@layer utilities {
+  .playwrite-cu-heading {
+    font-family: "Playwrite CU", cursive;
+    font-style: normal;
+    background: linear-gradient(90deg, #ff00cc, #333399, #66ccff);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
   }
+}
+.heading {
+  font-size: clamp(12px, 2.5vw, 30px);
+}
+.nav-items {
+  font-size: clamp(7px, 1.3vw, 16px);
+}
+@keyframes dropdown-down {
+  from {
+    translate: 0% -20%;
+  }
+  to {
+    translate: 0% 0%;
+  }
+}
+.dropdown-down {
+  animation: dropdown-down 0.5s;
+}
+
+@keyframes dropdown-up {
+  from {
+    translate: 0% 0%;
+  }
+  to {
+    translate: 0% -20%;
+  }
+}
+.dropdown-up {
+  animation: dropdown-up 0.5s;
+}
+.about {
+  font-size: clamp(10px, 2vw, 16px);
+}
+@keyframes zoomOut {
+  0% {
+    transform: scale(0.5);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+.zoomOut {
+  animation: zoomOut 1.5s ease-out;
+}

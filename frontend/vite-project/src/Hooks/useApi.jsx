@@ -1,51 +1,45 @@
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import axios from "axios";
+import { Context } from "../Context/globalContext";
+import { useNavigate } from "react-router-dom";
 
-const useApi = (api, method = 'get', requestData = null) => {
-  const [response, setResponse] = useState([]);
-  const [error, setError] = useState(null); 
+const useApi = (api, method = "get", requestData = null) => {
+  const [response, setResponse] = useState();
+  const { userAuth, setUserAuth } = useContext(Context);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         const config = {
-          method: method, 
-          url: api,      
+          method: method,
+          url: api,
           headers: {
-            'Content-Type': 'application/json'
+            "Content-Type": "application/json",
           },
-          withCredentials: true, 
-          validateStatus:function(status) {
-            return status>0;  
-          }
+          // withCredentials: true,
+          validateStatus: function (status) {
+            return status > 0;
+          },
         };
 
-        if (method !== 'get' && requestData) {
+        if (method !== "get" && requestData) {
           config.data = requestData;
         }
 
         const apiResponse = await axios(config);
-        console.log("Api response for :",api,apiResponse);
 
-        if (apiResponse.status === 200) {
-          setResponse(apiResponse.data.data || []); 
-        } else {
-          setError("No data found!"); 
-        }
+        setResponse(apiResponse.data);
       } catch (err) {
-        setError("An error occurred while fetching data.");
         console.error("Error fetching data:", err);
       }
     };
 
     if (api) {
       fetchData();
-      console.log("response after axios fetch in useApi hook:",response);
-
     }
-  }, [api, method]);  
+  }, [api, method, userAuth]);
 
-  return { response, error };
+  return { response };
 };
 
 export default useApi;

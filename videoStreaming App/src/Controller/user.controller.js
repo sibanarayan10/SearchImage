@@ -1,96 +1,108 @@
-import { User } from "../Models/user.model.js";
 import { oauth2Client } from "../Utils/googleAuth.js";
+import { User } from "../Models/user.model.js";
 
 import { uploadFile } from "../Utils/cloudinary.js";
 import { Image } from "../Models/image.model.js";
 import { ApiError } from "../Utils/ApiError.js";
 import { ApiResponse } from "../Utils/ApiResponse.js";
-import jwt from "jsonwebtoken"
-
+import jwt from "jsonwebtoken";
 
 const generateAccessAndRefereshTokens = async (userId) => {
   try {
-    const user = await User.findById(userId)
-    const accessToken = user.generateAccessToken()
-    const refreshToken = user.generateRefreshToken()
-    user.refreshToken = refreshToken
-    await user.save({ validateBeforeSave: false })
-    return { accessToken, refreshToken }
+    const user = await User.findById(userId);
+    const accessToken = user.generateAccessToken();
+    const refreshToken = user.generateRefreshToken();
+    user.refreshToken = refreshToken;
+    await user.save({ validateBeforeSave: false });
+    return { accessToken, refreshToken };
   } catch (error) {
     console.log("error happen at :");
-    throw new ApiError(500, "Something went wrong while generating referesh and access token")
+    throw new ApiError(
+      500,
+      "Something went wrong while generating referesh and access token"
+    );
   }
-}
+};
 const SignUp = async (req, res) => {
-  // Extract form data and file
-  const { FirstName, LastName, PhoneNumber, Password, confirmPassword, Email } = req.body;
+  const { fullName, email, password, confirmPassword } = req.body;
+  console.log(req.body);
+
   try {
-    // Validate fields
-    if ([FirstName, LastName, PhoneNumber, Password, confirmPassword, Email].some(item => !item.trim())) {
-      return res.status(400).json(new ApiError(400, "All fields are required!"));
+    if (
+      [fullName, password, confirmPassword, email].some((item) => !item.trim())
+    ) {
+      return res
+        .status(400)
+        .json(new ApiError(400, "All fields are required!"));
     }
 
-    const userExist = await User.findOne({ Email });
+    const userExist = await User.findOne({ email });
 
     if (userExist) {
-      return res.status(402).json(new ApiError(402, "User Already exist with this Email!Try with another"));
+      return res
+        .status(402)
+        .json(
+          new ApiError(
+            402,
+            "User Already exist with this Email!Try with another"
+          )
+        );
     }
-    if (Password !== confirmPassword) {
+    if (password !== confirmPassword) {
       return res.status(400).json(new ApiError(400, "Password mismatched!"));
     }
 
-    /** Validate file upload */
+    const user = await User.create({ fullName, email, password });
+    console.log("completed upto here");
 
-    // if (!file) {
-    //   return res.status(400).json({ message: "File not uploaded successfully!" });
-    // }
-
-    /**Upload file */
-    // const filePath = file.path;
-    // const uploadResponse = await uploadFile(filePath);
-    // console.log(uploadResponse);
-
-    // Create user
-    const user = new User({
-      FirstName, LastName, PhoneNumber, Password, confirmPassword, Email
-
-      // Assuming uploadFile returns an object with asset_id
-    });
-
-    // Save user to database
-    await user.save();
-
-    // Respond with success
     return res.status(201).json(new ApiResponse(200, "Sign-Up successfully"));
   } catch (error) {
-
-    return res.status(500).json(new ApiError(500, "Server is not responding for some reason.Try after some time", error));
+    console.log(error);
+    return res
+      .status(500)
+      .json(
+        new ApiError(
+          500,
+          "Server is not responding for some reason.Try after some time",
+          error
+        )
+      );
   }
 };
 const loginUser = async (req, res) => {
-  const { Email, Password } = req.body;
-  console.log(Email, Password);
-  
+  const { email, password } = req.body;
+  console.log(email, password);
 
   try {
-    if (!Email || !Password) {
-      throw new ApiError(400, "Username or password is required");
+    if (!email || !password) {
+      throw new ApiError(400, "Email or password is required");
     }
-    const user = await User.findOne({ Email });
+    const user = await User.findOne({ email });
     console.log(user);
     if (!user) {
-      throw new ApiError(404, "User does not exist!,Please Sign up to create an Account");
+      throw new ApiError(
+        404,
+        "User does not exist!,Please Sign up to create an Account"
+      );
     }
-    const isPasswordValid = await user.isPasswordCorrect(Password);
+    const isPasswordValid = await user.isPasswordCorrect(password);
     if (!isPasswordValid) {
-      return res.status(400).json(new ApiError(400, "Password for this email is incorrect!"));
+      return res
+        .status(400)
+        .json(new ApiError(400, "Password for this email is incorrect!"));
     }
-    const { accessToken, refreshToken } = await generateAccessAndRefereshTokens(user._id);
+    const { accessToken, refreshToken } = await generateAccessAndRefereshTokens(
+      user._id
+    );
 
-    const loggedInUser = await User.findById(user._id).select("-Password -refreshToken");
+    const loggedInUser = await User.findById(user._id).select(
+      "-Password -refreshToken"
+    );
 
     if (!loggedInUser) {
-      return res.status(402).json(new ApiResponse(402, "user not authenticated!"));
+      return res
+        .status(402)
+        .json(new ApiResponse(402, "user not authenticated!"));
     }
     const options = {
       httpOnly: true,
@@ -99,36 +111,37 @@ const loginUser = async (req, res) => {
       .status(200)
       .cookie("accessToken", accessToken, options)
       .cookie("refreshToken", refreshToken, options)
-      .json(new ApiResponse(200, { user: loggedInUser, accessToken, refreshToken }, "User logged in successfully"));
+      .json(
+        new ApiResponse(
+          200,
+          { user: loggedInUser, accessToken, refreshToken },
+          "User logged in successfully"
+        )
+      );
   } catch (error) {
-    // Properly handle and send error to the client
-
     if (error instanceof ApiError) {
       return res.status(error.statusCode).json(error);
     } else {
-      return res.status(500).json(new ApiError(500, "An unexpected error occurred", error.message));
+      return res
+        .status(500)
+        .json(new ApiError(500, "An unexpected error occurred", error.message));
     }
   }
 };
-const updateProfile = async (req, res) => {
-
-}
+const updateProfile = async (req, res) => {};
 const redirectURL = async (req, res) => {
-  
-const authUrl = oauth2Client.generateAuthUrl({
-    access_type: 'offline',
-    scope: ['https://www.googleapis.com/auth/userinfo.profile',
-    'https://www.googleapis.com/auth/userinfo.email']
-});
+  const authUrl = oauth2Client.generateAuthUrl({
+    access_type: "offline",
+    scope: [
+      "https://www.googleapis.com/auth/userinfo.profile",
+      "https://www.googleapis.com/auth/userinfo.email",
+    ],
+  });
 
   res.send(authUrl);
-}
+};
 
-/**in this google authentication what we are doing is if the user is previously logged in the google, we are just fetching that data instead of authentcating the user again,
- * As during the authentication google is providing us with some refreshtoken and accesstoken, instead of creating again the accesstoken and refresh token what we are doing is we setting cookie for accesstoken and refresh token and by keeping the data, we are also manipulating the req object.
- */
 const oauthCallback = async (req, res) => {
-  
   const { code } = req.query;
 
   if (!code) {
@@ -136,82 +149,92 @@ const oauthCallback = async (req, res) => {
   }
 
   try {
-   
     const { tokens } = await oauth2Client.getToken(code);
     console.log("Access Token and Refresh Tokens:", tokens);
 
-    
     oauth2Client.setCredentials(tokens);
 
     const userInfoResponse = await oauth2Client.request({
-      url: 'https://www.googleapis.com/userinfo/v2/me',
+      url: "https://www.googleapis.com/userinfo/v2/me",
     });
-
 
     console.log("User Info:", userInfoResponse);
     const userData = userInfoResponse.data;
     const userId = userData.id;
-    const accessToken = jwt.sign({
-      _id: new ObjectId(userId),
+    const accessToken = jwt.sign(
+      {
+        _id: new ObjectId(userId),
 
-      FirstName: userData.given_name,
-      LastName: userData.family_name,
-      Email: userData.email,
-      googleAuthenticated: true,
-    }, process.env.ACCESS_TOKEN_SECRET, {
-      expiresIn: process.env.ACCESS_TOKEN_EXPIRY
-    })
-    const refreshToken = jwt.sign({
-      _id: new ObjectId(userId),
-      FirstName: userData.given_name,
-      LastName: userData.Family_name,
-      Email: userData.email
-    }, process.env.REFRESH_TOKEN_SECRET, {
-      expiresIn: process.env.REFRESH_TOKEN_EXPIRY
-    })
+        FirstName: userData.given_name,
+        LastName: userData.family_name,
+        Email: userData.email,
+        googleAuthenticated: true,
+      },
+      process.env.ACCESS_TOKEN_SECRET,
+      {
+        expiresIn: process.env.ACCESS_TOKEN_EXPIRY,
+      }
+    );
+    const refreshToken = jwt.sign(
+      {
+        _id: new ObjectId(userId),
+        FirstName: userData.given_name,
+        LastName: userData.Family_name,
+        Email: userData.email,
+      },
+      process.env.REFRESH_TOKEN_SECRET,
+      {
+        expiresIn: process.env.REFRESH_TOKEN_EXPIRY,
+      }
+    );
 
-    // Optionally, save the user info and tokens in your database here
-    // You can add user creation or update logic based on userInfo.email or other properties
-
-    // Set cookies for access token and refresh token
     res.cookie("accessToken", accessToken, {
-      httpOnly: true, // Helps mitigate the risk of client-side script accessing the protected cookie
-      // Use secure cookies in production
-      maxAge: 3600 * 24000, // 1 day expiration
+      httpOnly: true,
+      maxAge: 3600 * 24000,
     });
 
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
 
-      maxAge: 30 * 24 * 3600 * 1000, // 30 days expiration
+      maxAge: 30 * 24 * 3600 * 1000,
     });
 
-    // Redirect to the frontend application
-    return res.redirect("http://localhost:5176/"); // Change to your frontend URL if different
+    return res.redirect("http://localhost:5176/");
   } catch (error) {
-    console.error('Error during authentication:', error.message);
-    return res.status(500).send('Authentication failed');
+    console.error("Error during authentication:", error.message);
+    return res.status(500).send("Authentication failed");
   }
 };
 
 const getAllImage = async (req, res) => {
   try {
     const user = req.user;
-    // console.log(user);
     if (!user) {
-      return res.status(401).json(new ApiResponse(401, null, "User not Authenticated!"));
+      return res
+        .status(401)
+        .json(new ApiResponse(401, [], "User not Authenticated!"));
     }
 
     const img = await Image.find({ owner: user._id });
 
     if (img.length === 0) {
-      return res.status(404).json(new ApiResponse(404, null, "No images found. Please upload an image."));
+      return res
+        .status(404)
+        .json(
+          new ApiResponse(404, [], "No images found. Please upload an image.")
+        );
     }
-    console.log(img)
-    return res.status(200).json(new ApiResponse(200, img, "Images fetched successfully."));
+    console.log(img);
+    return res
+      .status(200)
+      .json(new ApiResponse(200, img, "Images fetched successfully."));
   } catch (error) {
-    console.error(error); // Log the error for debugging
-    return res.status(500).json(new ApiResponse(500, null, "An error occurred while fetching images."));
+    console.error(error);
+    return res
+      .status(500)
+      .json(
+        new ApiResponse(500, [], "An error occurred while fetching images.")
+      );
   }
 };
 
@@ -225,17 +248,19 @@ const addImage = async (req, res) => {
     console.log(req.file);
     const localImagePath = req.file?.path;
     if (!localImagePath) {
-      return res.status(500).json({ error: "Something went wrong while saving the file locally." });
+      return res
+        .status(500)
+        .json({ error: "Something went wrong while saving the file locally." });
     }
 
     const upload = await uploadFile(localImagePath);
-    console.log(upload)
+    console.log(upload);
     const image = new Image({
       Title,
       Description,
       owner: req.user._id,
       cloudinary_Assetid: upload.asset_id,
-      cloudinary_publicId: upload.public_id
+      cloudinary_publicId: upload.public_id,
     });
     console.log(image);
     await image.save();
@@ -250,47 +275,53 @@ const addImage = async (req, res) => {
 const deleteAll = async (req, res) => {
   const img = await Image.find({ owner: req.user });
   return img;
-
-
-}
+};
 const deleteUsers = async (req, res) => {
   try {
-    const result = await User.deleteMany(); 
-    res.status(200).json({ message: 'All users deleted successfully', result });
+    const result = await User.deleteMany();
+    res.status(200).json({ message: "All users deleted successfully", result });
   } catch (error) {
-    res.status(500).json({ message: 'Error deleting users', error: error.message });
+    res
+      .status(500)
+      .json({ message: "Error deleting users", error: error.message });
   }
 };
 const deleteImage = async (req, res) => {
   try {
-    const {imgId} = req.params;
-    console.log("params",req.params);
-    if(!imgId){
-      return res.status(400).json(new ApiError(400,"something went wrong"))
+    const { imgId } = req.params;
+    console.log("params", req.params);
+    if (!imgId) {
+      return res.status(400).json(new ApiError(400, "something went wrong"));
     }
     console.log("Image ID to delete:", imgId);
-    
+
     const result = await Image.deleteOne({ _id: imgId });
     if (result.deletedCount === 1) {
-      return res.status(200).json(new ApiResponse(200, "Image deleted successfully"));
+      return res
+        .status(200)
+        .json(new ApiResponse(200, "Image deleted successfully"));
     }
 
     return res.status(404).json(new ApiError(404, "Image not found"));
   } catch (error) {
     console.error("Error deleting image:", error);
-    return res.status(500).json(new ApiError(500, "Something went wrong! Try again after some time"));
+    return res
+      .status(500)
+      .json(
+        new ApiError(500, "Something went wrong! Try again after some time")
+      );
   }
 };
 const editImage = async (req, res) => {
   try {
     const { id } = req.params;
     const { title, desc } = req.body;
-    console.log(title,desc);
+    console.log(title, desc);
     const updatedImage = await Image.findByIdAndUpdate(
       id,
       {
         ...(title !== undefined && title !== "" && { Title: title }),
-        ...(desc !== undefined && desc !== "" && { Description: desc })
+        ...(desc !== undefined && desc !== "" && { Description: desc }),
       },
       { returnDocument: "after" } // `new: true` ensures the returned document is the updated one
     );
@@ -300,23 +331,112 @@ const editImage = async (req, res) => {
     }
 
     console.log("Updated Image:", updatedImage);
-    return res.status(200).json(new ApiResponse(200, updatedImage, "Updated Successfully."));
+    return res
+      .status(200)
+      .json(new ApiResponse(200, updatedImage, "Updated Successfully."));
   } catch (error) {
     console.error("Error updating image:", error);
-    return res.status(502).json(new ApiError(502, "Something went wrong", error));
+    return res
+      .status(502)
+      .json(new ApiError(502, "Something went wrong", error));
   }
 };
-const getallUsers=async(req,res)=>{
-try{  const users=await User.find({});
-  return res.status(200).json(new ApiResponse(200,users));}
-catch(error){
-  return res.status(400).json(new ApiError(400,"something went wrong",error));}
+const getallUsers = async (req, res) => {
+  try {
+    const users = await User.find({});
+    return res.status(200).json(new ApiResponse(200, users));
+  } catch (error) {
+    return res
+      .status(400)
+      .json(new ApiError(400, "something went wrong", error));
+  }
+};
 
-}
+const getUserDetail = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const images = await Image.find({ owner: id }).select(
+      "cloudinary_publicId"
+    );
+
+    const user = await User.findById(id);
+
+    if (!images || images.length === 0) {
+      return res.status(404).json(new ApiResponse(404, [], "No images found!"));
+    }
+
+    if (!user) {
+      return res.status(404).json(new ApiResponse(404, [], "User not found!"));
+    }
+
+    return res.status(200).json(
+      new ApiResponse(
+        200,
+        {
+          images,
+          email: user.email,
+          name: user.fullName,
+        },
+        "Images fetched successfully!"
+      )
+    );
+  } catch (error) {
+    console.error(error);
+    return res
+      .status(500)
+      .json(new ApiError(500, "Error fetching images", error));
+  }
+};
+
+const logoutUser = async (req, res) => {
+  const id = req.user?._id;
+  console.log(req.user);
+  console.log(req.user?._id);
+  if (!id) {
+    return res.status(401).json(new ApiResponse(401, "Unauthorized!"));
+  }
+  try {
+    await User.findByIdAndUpdate(
+      id,
+      { $unset: { refreshToken: 1 } },
+      { new: true }
+    );
+
+    res
+      .clearCookie("accessToken", {
+        httpOnly: true,
+        sameSite: "None",
+        secure: true,
+      })
+      .clearCookie("refreshToken", {
+        httpOnly: true,
+        sameSite: "None",
+        secure: process.env.NODE_ENV === "production",
+      })
+      .status(200)
+      .json(new ApiResponse(200, "User logged out successfully"));
+  } catch (error) {
+    console.error("Logout Error:", error);
+    res
+      .status(500)
+      .json(new ApiError(500, "Error occurred while logging out", error));
+  }
+};
 
 export {
-  redirectURL, oauthCallback,
-  SignUp, loginUser, getAllImage,
-  deleteAll, updateProfile, addImage,
-  deleteUsers, deleteImage,editImage,getallUsers
+  logoutUser,
+  redirectURL,
+  oauthCallback,
+  SignUp,
+  loginUser,
+  getAllImage,
+  deleteAll,
+  updateProfile,
+  addImage,
+  deleteUsers,
+  deleteImage,
+  editImage,
+  getallUsers,
+  getUserDetail,
 };
