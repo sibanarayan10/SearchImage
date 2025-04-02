@@ -30,7 +30,7 @@ const SearchComponent = ({ setResponse }) => {
 
     try {
       const response = await axios.post(
-        `${import.meta.env.VITE_API_URL}/image/getImage`,
+        `${import.meta.env.VITE_API_URL}/api/image/getImage`,
         { desc: searchTerm },
         {
           headers: { "Content-Type": "application/json" },

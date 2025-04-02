@@ -12,9 +12,10 @@ import CustomAlert from "./Components/CustomAlert";
 const App = () => {
   const [logout, setLogout] = useState(false);
   const { response } = useApi(
-    `${import.meta.env.VITE_API_URL}/image/getAll`,
+    `${import.meta.env.VITE_API_URL}/api/image/getAll`,
     "get"
   );
+  console.log(response);
   const { response: data } = useApi(
     `${import.meta.env.VITE_API_URL}/user/images`
   );
