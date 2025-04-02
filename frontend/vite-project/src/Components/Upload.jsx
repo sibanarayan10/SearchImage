@@ -100,6 +100,7 @@ const Upload = () => {
         <input
           type="file"
           name="Image"
+          accept="image/*"
           onChange={handleImageChange}
           className="block w-full bg-gray-700 text-white py-2 px-3 border border-gray-600 rounded mb-4 focus:outline-none focus:ring focus:border-blue-300 nav-items"
         />

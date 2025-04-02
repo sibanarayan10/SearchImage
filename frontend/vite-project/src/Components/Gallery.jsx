@@ -188,10 +188,7 @@ const Gallery = ({ data = [], DeleteAndEdit }) => {
             ))}
           </div>
         ) : (
-          <div className="heading text-white ">
-            {" "}
-            Create your personalized gallery!
-          </div>
+          <div className="heading text-red-500 "> No image found</div>
         )}
       </div>
       {visible && (
