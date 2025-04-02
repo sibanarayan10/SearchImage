@@ -10,7 +10,7 @@ import { Context } from "../Context/globalContext";
 
 const Navbar = ({ setResponse, setLogout }) => {
   const [isOpen, setIsOpen] = useState(true);
-  const navItems = ["upload", "about"];
+  const navItems = ["upload"];
   const { userAuth } = useContext(Context);
   const [navigate, setNavigate] = useState("");
   const location = useLocation();
@@ -44,8 +44,8 @@ const Navbar = ({ setResponse, setLogout }) => {
     <div className="flex justify-center">
       <div className="bg-black shadow-lg container mx-auto max-w-screen-2xl w-screen fixed z-50">
         <div className="flex   flex-row justify-between items-center max-[768px]:items-start border-b-2 border-gray-700 p-2 w-full bg-black/80">
-          <div className="flex flex-col md:flex-row justify-center items-center min-[475px]:w-1/2 w-1/3 ">
-            <div className="logo flex items-center justify-center w-full  p-2 md:w-1/3 ">
+          <div className="flex flex-row justify-start items-center min-[475px]:w-1/2 w-1/3 ">
+            <div className="logo flex items-center justify-center   p-2 md:w-1/3 ">
               <Link
                 to="/"
                 className="heading font-bold text-gray-100 hover:text-yellow-300 transition-all duration-300 font-serif w-full"
@@ -54,31 +54,22 @@ const Navbar = ({ setResponse, setLogout }) => {
               </Link>
             </div>
 
-            <div
-              className={`relative top-full flex-col md:flex-row justify-center min-[768px]:flex items-center  md:w-2/3  nav-items ${
-                isOpen ? "flex " : "hidden"
-              } dropdown-drop   max-w-screen-2xl min-[475px]:left-1/2 md:left-0 max-[475px]:-right-full max-[768px]:w-screen `}
+            <Link
+              to={`/upload`}
+              className="text-center text-gray-100 p-2 hover:bg-gray-800 rounded transition duration-300 font-medium capitalize ml-8 max-[400px]:ml-2 nav-items"
+              onClick={() => setIsOpen(false)}
             >
-              {navItems.map((item, index) => (
-                <Link
-                  to={`/${item}`}
-                  className="w-full text-center text-gray-100 p-2 hover:bg-gray-800 rounded transition duration-300 font-medium capitalize"
-                  key={index}
-                  onClick={() => setIsOpen(false)}
-                >
-                  {item}
-                </Link>
-              ))}
-            </div>
+              Upload
+            </Link>
           </div>
 
           <div className="flex flex-row items-center justify-end  gap-x-2 min-[475px]:w-1/2 w-2/3 ">
-            <div className="flex justify-center items-center  shadow-md w-3/5 max-[400px]:w-2/3 ">
+            <div className="flex justify-end items-center  shadow-md w-3/5 max-[400px]:w-2/3 ">
               <SearchComponent setResponse={setResponse} />
             </div>
 
-            <div className="flex justify-center items-center">
-              {/* <Link to="/sign-in">
+            {/* <div className="flex justify-center items-center">
+              <Link to="/sign-in">
                 <button
                   type="button"
                   className="text-center bg-yellow-500 hover:bg-yellow-400 text-gray-900 px-2 py-1 rounded transition duration-300 font-semibold nav-items"
@@ -92,14 +83,14 @@ const Navbar = ({ setResponse, setLogout }) => {
                     )}
                   </span>
                 </button>
-              </Link> */}
-            </div>
-            <div className="hidden max-[768px]:flex">
+              </Link>
+            </div> */}
+            {/* <div className="hidden max-[768px]:flex">
               <TableOfContents
                 className="text-white hover:scale-110 transition-all duration-150 cursor-pointer w-4"
                 onClick={() => setIsOpen((prev) => !prev)}
               />
-            </div>
+            </div> */}
           </div>
         </div>
       </div>

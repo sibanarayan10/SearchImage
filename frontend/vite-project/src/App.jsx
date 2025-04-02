@@ -44,7 +44,7 @@ const App = () => {
             element={<Gallery data={data.data} DeleteAndEdit={true} />}
           />
         )} */}
-        <Route path="/About" element={<About />} />
+        {/* <Route path="/About" element={<About />} /> */}
       </Routes>
     </Router>
   );
