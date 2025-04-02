@@ -6,7 +6,6 @@ import { connectMongoDB } from "./src/Connect/connectMongo.js";
 import mongoose from "mongoose";
 import cors from "cors";
 import cookieParser from "cookie-parser";
-import path from "path";
 
 const app = express();
 dotenv.config({ path: "./.env" });
@@ -51,11 +50,11 @@ process.on("SIGINT", async () => {
 app.get("/", (req, res) => {
   res.send("server is listening..");
 });
-app.get("*", (req, res) => {
-  res.sendFile(
-    path.resolve(__dirname, "frontend", "vite-project", "dist", "index.html")
-  );
-});
+// app.get("*", (req, res) => {
+//   res.sendFile(
+//     path.resolve(__dirname, "frontend", "vite-project", "dist", "index.html")
+//   );
+// });
 // router set-up
 app.use("/api/user", userRouter);
 app.use("/api/image", imageRouter);

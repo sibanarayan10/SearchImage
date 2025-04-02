@@ -8,6 +8,7 @@ import useApi from "./Hooks/useApi";
 import About from "./Components/About";
 import { useState } from "react";
 import CustomAlert from "./Components/CustomAlert";
+import ScrollingText from "./Components/ScrollingText";
 
 const App = () => {
   const [logout, setLogout] = useState(false);
@@ -23,31 +24,23 @@ const App = () => {
   const [data1, setData] = useState([]);
 
   return (
-    <Router>
-      <CustomAlert />
+    <div className="bg-[#0C1521]  h-screen">
+      <Router>
+        <ScrollingText />
 
-      <Navbar setResponse={setData} setLogout={setLogout} />
-      <Routes>
-        {response && (
-          <Route
-            path="/"
-            element={<Gallery data={response.data} DeleteAndEdit={false} />}
-          />
-        )}
-        <Route path="/:search" element={<Gallery data={data1} />} />
-
-        {/* <Route path="/sign-up" element={<SignUp />} />
-        <Route path="/sign-in" element={<Login />} /> */}
-        <Route path="/upload" element={<Upload />} />
-        {/* {data && (
-          <Route
-            path="/uploads"
-            element={<Gallery data={data.data} DeleteAndEdit={true} />}
-          />
-        )} */}
-        {/* <Route path="/About" element={<About />} /> */}
-      </Routes>
-    </Router>
+        <Navbar setResponse={setData} setLogout={setLogout} />
+        <Routes>
+          {response && (
+            <Route
+              path="/"
+              element={<Gallery data={response.data} DeleteAndEdit={false} />}
+            />
+          )}
+          <Route path="/:search" element={<Gallery data={data1} />} />
+          <Route path="/upload" element={<Upload />} />
+        </Routes>
+      </Router>
+    </div>
   );
 };
 
