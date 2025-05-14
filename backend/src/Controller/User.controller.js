@@ -1,7 +1,7 @@
-import { User } from "../Models/user.model.js";
+import { User } from "../Models/User.model.js";
 
 import { uploadFile } from "../Utils/cloudinary.js";
-import { Image } from "../Models/image.model.js";
+import { Image } from "../Models/Image.model.js";
 import { ApiError } from "../Utils/ApiError.js";
 import { ApiResponse } from "../Utils/ApiResponse.js";
 import mongoose from "mongoose";
