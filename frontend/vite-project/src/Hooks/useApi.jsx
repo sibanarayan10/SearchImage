@@ -5,7 +5,6 @@ import { useNavigate } from "react-router-dom";
 
 const useApi = (api, method = "get", requestData = null) => {
   const [response, setResponse] = useState();
-  const { userAuth, setUserAuth } = useContext(Context);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -37,7 +36,7 @@ const useApi = (api, method = "get", requestData = null) => {
     if (api) {
       fetchData();
     }
-  }, [api, method, userAuth]);
+  }, [api, method]);
 
   return { response };
 };

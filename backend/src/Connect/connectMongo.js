@@ -1,16 +1,17 @@
-import mongoose from 'mongoose'
+import mongoose from "mongoose";
 
+const connectMongoDB = async () => {
+  try {
+    const connectionInstace = await mongoose.connect(
+      `${process.env.MONGO_URL}`
+    );
 
-const connectMongoDB=async()=>{
-    try{
-    const connectionInstace=await mongoose.connect(`${process.env.MONGO_URL}`);
-
-    if(!connectionInstace){
-        throw new Error("something went wrong while connecting to the DB");
+    if (!connectionInstace) {
+      throw new Error("something went wrong while connecting to the DB");
     }
-}
-catch(error){
+  } catch (error) {
+    console.log(error);
     throw error;
-}
-}
-export {connectMongoDB}
+  }
+};
+export { connectMongoDB };

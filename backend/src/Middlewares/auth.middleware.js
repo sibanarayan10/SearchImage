@@ -13,7 +13,7 @@ export const verifyJWT = async (req, res, next) => {
     req.user = payload;
     console.log("payload", payload);
     req.user._id = payload._id;
-    // }
+    console.log("this is working");
     next();
   } catch (error) {
     return res.status(401).json(new ApiError(401, "Token Expired!", error));

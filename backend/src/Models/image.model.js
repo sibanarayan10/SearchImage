@@ -1,23 +1,21 @@
 import mongoose, { Schema } from "mongoose";
 import { User } from "./user.model.js";
-const imageSchema = new Schema(
+const ImageSchema = new Schema(
   {
-    Title: {
+    title: {
       type: String,
       required: true,
     },
-    Description: {
-      type: String,
-      required: true,
-    },
-    owner: {
+    uploadedBy: {
       type: Schema.Types.ObjectId,
       ref: User,
-    },
-    cloudinary_Assetid: {
-      type: String,
       required: true,
     },
+    desc: {
+      type: String,
+    },
+    tags: [{ type: String, required: true }],
+
     cloudinary_publicId: {
       type: String,
       required: true,
@@ -25,5 +23,7 @@ const imageSchema = new Schema(
   },
   { timestamps: true }
 );
+ImageSchema.index({ uploadedBy: 1 });
+ImageSchema.index({ tags: "text", desc: "text" });
 
-export const Image = mongoose.model("Image", imageSchema);
+export const Image = mongoose.model("Image", ImageSchema);

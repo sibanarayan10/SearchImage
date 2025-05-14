@@ -1,11 +1,13 @@
-import { oauth2Client } from "../Utils/googleAuth.js";
 import { User } from "../Models/user.model.js";
 
 import { uploadFile } from "../Utils/cloudinary.js";
 import { Image } from "../Models/image.model.js";
 import { ApiError } from "../Utils/ApiError.js";
 import { ApiResponse } from "../Utils/ApiResponse.js";
-import jwt from "jsonwebtoken";
+import mongoose from "mongoose";
+import { Like } from "../Models/Like.model.js";
+import { Follow } from "../Models/Follow.model.js";
+import cloudinary from "cloudinary";
 
 const generateAccessAndRefereshTokens = async (userId) => {
   try {
@@ -23,13 +25,15 @@ const generateAccessAndRefereshTokens = async (userId) => {
     );
   }
 };
-const SignUp = async (req, res) => {
-  const { fullName, email, password, confirmPassword } = req.body;
+const signUp = async (req, res) => {
+  const { fullname, email, phone, password, confirm_password } = req.body;
   console.log(req.body);
 
   try {
     if (
-      [fullName, password, confirmPassword, email].some((item) => !item.trim())
+      [fullname, phone, password, confirm_password, email].some(
+        (item) => !item.trim()
+      )
     ) {
       return res
         .status(400)
@@ -48,14 +52,15 @@ const SignUp = async (req, res) => {
           )
         );
     }
-    if (password !== confirmPassword) {
+    if (password !== confirm_password) {
       return res.status(400).json(new ApiError(400, "Password mismatched!"));
     }
 
-    const user = await User.create({ fullName, email, password });
-    console.log("completed upto here");
+    const user = await User.create({ fullname, phone, email, password });
 
-    return res.status(201).json(new ApiResponse(200, "Sign-Up successfully"));
+    return res
+      .status(201)
+      .json(new ApiResponse(200, user, "Sign-Up successfully"));
   } catch (error) {
     console.log(error);
     return res
@@ -96,7 +101,7 @@ const loginUser = async (req, res) => {
     );
 
     const loggedInUser = await User.findById(user._id).select(
-      "-Password -refreshToken"
+      "-password -refreshToken"
     );
 
     if (!loggedInUser) {
@@ -128,106 +133,153 @@ const loginUser = async (req, res) => {
     }
   }
 };
-const updateProfile = async (req, res) => {};
-const redirectURL = async (req, res) => {
-  const authUrl = oauth2Client.generateAuthUrl({
-    access_type: "offline",
-    scope: [
-      "https://www.googleapis.com/auth/userinfo.profile",
-      "https://www.googleapis.com/auth/userinfo.email",
-    ],
-  });
-
-  res.send(authUrl);
-};
-
-const oauthCallback = async (req, res) => {
-  const { code } = req.query;
-
-  if (!code) {
-    return res.status(500).json({ error: "Google authentication failed!" });
-  }
-
+// user is deleting own account
+const deleteAccount = async (req, res) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
   try {
-    const { tokens } = await oauth2Client.getToken(code);
-    console.log("Access Token and Refresh Tokens:", tokens);
-
-    oauth2Client.setCredentials(tokens);
-
-    const userInfoResponse = await oauth2Client.request({
-      url: "https://www.googleapis.com/userinfo/v2/me",
-    });
-
-    console.log("User Info:", userInfoResponse);
-    const userData = userInfoResponse.data;
-    const userId = userData.id;
-    const accessToken = jwt.sign(
-      {
-        _id: new ObjectId(userId),
-
-        FirstName: userData.given_name,
-        LastName: userData.family_name,
-        Email: userData.email,
-        googleAuthenticated: true,
-      },
-      process.env.ACCESS_TOKEN_SECRET,
-      {
-        expiresIn: process.env.ACCESS_TOKEN_EXPIRY,
-      }
-    );
-    const refreshToken = jwt.sign(
-      {
-        _id: new ObjectId(userId),
-        FirstName: userData.given_name,
-        LastName: userData.Family_name,
-        Email: userData.email,
-      },
-      process.env.REFRESH_TOKEN_SECRET,
-      {
-        expiresIn: process.env.REFRESH_TOKEN_EXPIRY,
-      }
-    );
-
-    res.cookie("accessToken", accessToken, {
-      httpOnly: true,
-      maxAge: 3600 * 24000,
-    });
-
-    res.cookie("refreshToken", refreshToken, {
-      httpOnly: true,
-
-      maxAge: 30 * 24 * 3600 * 1000,
-    });
-
-    return res.redirect("http://localhost:5176/");
-  } catch (error) {
-    console.error("Error during authentication:", error.message);
-    return res.status(500).send("Authentication failed");
-  }
-};
-
-const getAllImage = async (req, res) => {
-  try {
-    const user = req.user;
-    if (!user) {
-      return res
-        .status(401)
-        .json(new ApiResponse(401, [], "User not Authenticated!"));
+    const id = req.user?._id || req.params.id;
+    if (!id) {
+      await session.abortTransaction();
+      return res.status(400).json(new ApiResponse(400, [], "Id can't be null"));
     }
 
-    const img = await Image.find({ owner: user._id });
+    await User.deleteOne({ _id: id }).session(session);
 
-    if (img.length === 0) {
+    const images = await Image.find({ uploadedBy: id }).session(session);
+
+    await Promise.all(
+      images.map((img) => cloudinary.uploader.destroy(img.cloudinary_publicId))
+    );
+
+    await Image.deleteMany({ uploadedBy: id }).session(session);
+    await Follow.deleteMany({ follower: id }).session(session);
+    await Follow.deleteMany({ following: id }).session(session);
+    await Like.updateMany({ likedBy: id }, { $pull: { likedBy: id } }).session(
+      session
+    );
+
+    await session.commitTransaction();
+    return res
+      .status(200)
+      .json(new ApiResponse(200, [], "Account deleted successfully"));
+  } catch (error) {
+    await session.abortTransaction();
+    return res
+      .status(500)
+      .json(
+        new ApiError(500, "Something went wrong while deleting account", error)
+      );
+  } finally {
+    session.endSession();
+  }
+};
+
+// this need to be modified
+const addImage = async (req, res) => {
+  const user = req.user;
+  if (!user) {
+    return res.status(401).json(new ApiResponse(401, [], "Unauthorized"));
+  }
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
+  const files = req.files;
+  const metadata = req.body.metadata;
+
+  try {
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      const filePath = file.path;
+
+      const upload = await uploadFile(filePath);
+      console.log(upload.public_id);
+
+      const title = metadata[i].title;
+      const desc = metadata[i].desc;
+      const tags = JSON.parse(metadata[i].tags);
+
+      console.log({ title, desc });
+
+      const image = await Image.create(
+        [
+          {
+            title,
+            desc,
+            tags,
+            cloudinary_publicId: upload.public_id,
+            uploadedBy: req.user._id,
+          },
+        ],
+        { session }
+      );
+    }
+
+    await session.commitTransaction();
+    session.endSession();
+
+    return res
+      .status(200)
+      .json(new ApiResponse(200, null, "Image uploaded successfully"));
+  } catch (error) {
+    await session.abortTransaction();
+    session.endSession();
+
+    console.error("Error uploading image:", error);
+    return res.status(500).json({ error: "Upload failed", details: error });
+  }
+};
+
+// user uploaded images
+// response integrity
+const getUploads = async (req, res) => {
+  const user = req.user;
+  const { skip = 0, limit = 10 } = req.query;
+
+  if (!user) {
+    return res
+      .status(401)
+      .json(new ApiResponse(401, [], "Unauthorized access"));
+  }
+
+  try {
+    const images = await Image.find({ uploadedBy: user._id })
+      .skip(Number(skip))
+      .limit(Number(limit))
+      .select("cloudinary_publicId _id uploadedBy")
+      .lean();
+    if (images.length === 0) {
       return res
         .status(404)
         .json(
           new ApiResponse(404, [], "No images found. Please upload an image.")
         );
     }
-    console.log(img);
+
+    const currUser = await User.findById(user._id).select("savedImage").lean();
+
+    const result = await Promise.all(
+      images.map(async (image) => {
+        const isLiked = await Like.countDocuments({
+          image: image._id,
+          likedBy: user._id,
+        });
+
+        const isSaved = currUser.savedImage?.some(
+          (imgId) => imgId.toString() === image._id.toString()
+        );
+
+        return {
+          ...image,
+          isLiked: isLiked > 0,
+          isSaved: !!isSaved,
+        };
+      })
+    );
+
     return res
       .status(200)
-      .json(new ApiResponse(200, img, "Images fetched successfully."));
+      .json(new ApiResponse(200, result, "Images fetched successfully."));
   } catch (error) {
     console.error(error);
     return res
@@ -238,78 +290,136 @@ const getAllImage = async (req, res) => {
   }
 };
 
-const addImage = async (req, res) => {
-  const { Title, Description } = req.body;
-  try {
-    if (!Title) {
-      return res.status(400).json({ error: "Title is a required field!" });
-    }
-    console.log(req.file);
-    const localImagePath = req.file?.path;
-    if (!localImagePath) {
-      return res
-        .status(500)
-        .json({ error: "Something went wrong while saving the file locally." });
-    }
+const getSavedImage = async (req, res) => {
+  const user = req.user;
+  const { skip = 0, limit = 10 } = req.query;
 
-    const upload = await uploadFile(localImagePath);
-    console.log(upload);
-    const image = new Image({
-      Title,
-      Description,
-      cloudinary_Assetid: upload.asset_id,
-      cloudinary_publicId: upload.public_id,
-    });
-    console.log(image);
-    await image.save();
-
-    return res.status(200).json({ message: "Image uploaded successfully" });
-  } catch (error) {
-    console.error("Error uploading image:", error);
-    return new ApiError(500, "Error :", error);
+  if (!user) {
+    return res
+      .status(401)
+      .json(new ApiError(401, "Unauthorized", "You are not logged in"));
   }
-};
 
-const deleteAll = async (req, res) => {
-  const img = await Image.find({ owner: req.user });
-  return img;
-};
-const deleteUsers = async (req, res) => {
   try {
-    const result = await User.deleteMany();
-    res.status(200).json({ message: "All users deleted successfully", result });
-  } catch (error) {
-    res
-      .status(500)
-      .json({ message: "Error deleting users", error: error.message });
-  }
-};
-const deleteImage = async (req, res) => {
-  try {
-    const { imgId } = req.params;
-    console.log("params", req.params);
-    if (!imgId) {
-      return res.status(400).json(new ApiError(400, "something went wrong"));
-    }
-    console.log("Image ID to delete:", imgId);
+    const userData = await User.findById(user._id).select("savedImage").lean();
 
-    const result = await Image.deleteOne({ _id: imgId });
-    if (result.deletedCount === 1) {
+    const savedImages = userData?.savedImage || [];
+
+    if (savedImages.length === 0) {
       return res
-        .status(200)
-        .json(new ApiResponse(200, "Image deleted successfully"));
+        .status(404)
+        .json(
+          new ApiResponse(404, [], "No saved images found. Try saving one.")
+        );
     }
 
-    return res.status(404).json(new ApiError(404, "Image not found"));
+    const paginatedImageIds = savedImages.slice(
+      Number(skip),
+      Number(skip) + Number(limit)
+    );
+
+    const result = await Promise.all(
+      paginatedImageIds.map(async (id) => {
+        const image = await Image.findById(id)
+          .select("cloudinary_publicId _id uploadedBy")
+          .lean();
+
+        if (!image) return null;
+
+        const isLiked = await Like.countDocuments({
+          image: image._id,
+          likedBy: user._id,
+        });
+
+        return {
+          ...image,
+          isLiked: isLiked > 0,
+          isSaved: true,
+        };
+      })
+    );
+
+    const filteredResult = result.filter((img) => img !== null);
+
+    return res
+      .status(200)
+      .json(
+        new ApiResponse(
+          200,
+          filteredResult,
+          "Saved images fetched successfully."
+        )
+      );
   } catch (error) {
-    console.error("Error deleting image:", error);
+    console.error(error);
     return res
       .status(500)
       .json(
-        new ApiError(500, "Something went wrong! Try again after some time")
+        new ApiError(
+          500,
+          "Internal Server Error",
+          "Something went wrong while fetching saved images."
+        )
       );
   }
 };
+
+// deleting an image uploaded by the user
+const deleteImage = async (req, res) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
+  try {
+    const imgId = req.params.imgId;
+
+    if (!imgId) {
+      await session.abortTransaction();
+      session.endSession();
+      return res
+        .status(400)
+        .json(new ApiResponse(400, [], "Image ID can't be null"));
+    }
+
+    const image = await Image.findById(imgId).session(session);
+    if (!image) {
+      await session.abortTransaction();
+      session.endSession();
+      return res.status(404).json(new ApiResponse(404, [], "Image not found"));
+    }
+
+    await Like.deleteMany({ image: imgId }).session(session);
+
+    await User.updateMany({}, { $pull: { savedImage: imgId } }).session(
+      session
+    );
+
+    await cloudinary.uploader.destroy(image.cloudinary_publicId);
+
+    const deletedImage = await Image.deleteOne({ _id: imgId }).session(session);
+    if (deletedImage.deletedCount === 0) {
+      await session.abortTransaction();
+      session.endSession();
+      return res.status(404).json(new ApiResponse(404, [], "Image not found"));
+    }
+
+    await session.commitTransaction();
+    session.endSession();
+
+    return res
+      .status(200)
+      .json(
+        new ApiResponse(200, [], "Image and related likes deleted successfully")
+      );
+  } catch (error) {
+    console.error(error);
+    await session.abortTransaction();
+    session.endSession();
+    return res
+      .status(500)
+      .json(new ApiError(500, "Error while deleting the image", error.message));
+  }
+};
+
 const editImage = async (req, res) => {
   try {
     const { id } = req.params;
@@ -339,6 +449,104 @@ const editImage = async (req, res) => {
       .json(new ApiError(502, "Something went wrong", error));
   }
 };
+
+// getting account detail of someone
+const getAccountDetails = async (req, res) => {
+  try {
+    const id = req.user._id;
+
+    if (!id) {
+      return res
+        .status(400)
+        .json(new ApiResponse(401, [], "Unauthorized user"));
+    }
+    console.log(id);
+
+    const user = await User.findById(id)
+      .lean()
+      .select("fullname profileImg savedImage email bio");
+    if (!user) {
+      return res.status(404).json(new ApiResponse(404, [], "User not found"));
+    }
+
+    const totalFollowers = await Follow.countDocuments({ following: id });
+    const totalFollowing = await Follow.countDocuments({ follower: id });
+
+    const totalUploadsCount = await Image.countDocuments({ uploadedBy: id });
+    const totalSavedImage = user.savedImage.length;
+
+    const result = {
+      email: user.email,
+      fullname: user.fullname,
+      profileImg: user.profileImg || null,
+      bio: user.bio,
+      totalFollowers,
+      totalFollowing,
+      totalUploadsCount,
+      totalSavedImage,
+    };
+
+    return res
+      .status(200)
+      .json(new ApiResponse(200, result, "User details fetched successfully"));
+  } catch (error) {
+    console.log(error);
+    return res
+      .status(500)
+      .json(new ApiError(500, "Something went wrong", error));
+  }
+};
+
+// user is follow/unfollow someone
+const toggleFollow = async (req, res) => {
+  const userId = req.user._id;
+  const toBeFollowedId = req.params.idTobeFollowed;
+
+  if (!toBeFollowedId) {
+    return res.status(400).json(new ApiResponse(400, [], "Id can't be null"));
+  }
+
+  if (userId.toString() === toBeFollowedId) {
+    return res
+      .status(400)
+      .json(new ApiResponse(400, [], "You cannot follow yourself"));
+  }
+
+  try {
+    const existingFollow = await Follow.findOne({
+      follower: userId,
+      following: toBeFollowedId,
+    });
+
+    if (existingFollow) {
+      await Follow.deleteOne({
+        follower: userId,
+        following: toBeFollowedId,
+      });
+
+      return res
+        .status(200)
+        .json(new ApiResponse(200, [], "Unfollowed successfully"));
+    } else {
+      await Follow.create({
+        follower: userId,
+        following: toBeFollowedId,
+      });
+
+      return res
+        .status(200)
+        .json(new ApiResponse(200, [], "Followed successfully"));
+    }
+  } catch (error) {
+    console.log(error);
+    return res
+      .status(500)
+      .json(new ApiError(500, "Something went wrong", error.message));
+  }
+};
+
+// user is like/unlike an image
+
 const getallUsers = async (req, res) => {
   try {
     const users = await User.find({});
@@ -350,47 +558,9 @@ const getallUsers = async (req, res) => {
   }
 };
 
-const getUserDetail = async (req, res) => {
-  const { id } = req.params;
-
-  try {
-    const images = await Image.find({ owner: id }).select(
-      "cloudinary_publicId"
-    );
-
-    const user = await User.findById(id);
-
-    if (!images || images.length === 0) {
-      return res.status(404).json(new ApiResponse(404, [], "No images found!"));
-    }
-
-    if (!user) {
-      return res.status(404).json(new ApiResponse(404, [], "User not found!"));
-    }
-
-    return res.status(200).json(
-      new ApiResponse(
-        200,
-        {
-          images,
-          email: user.email,
-          name: user.fullName,
-        },
-        "Images fetched successfully!"
-      )
-    );
-  } catch (error) {
-    console.error(error);
-    return res
-      .status(500)
-      .json(new ApiError(500, "Error fetching images", error));
-  }
-};
-
 const logoutUser = async (req, res) => {
   const id = req.user?._id;
   console.log(req.user);
-  console.log(req.user?._id);
   if (!id) {
     return res.status(401).json(new ApiResponse(401, "Unauthorized!"));
   }
@@ -422,19 +592,59 @@ const logoutUser = async (req, res) => {
   }
 };
 
+const updateUser = async (req, res) => {
+  const file = req.file;
+  const { fullname, bio } = req.body;
+  const id = req.user._id;
+  if (!id) {
+    return res.status(400).json(new ApiResponse(400, [], "Id can't be null"));
+  }
+  try {
+    let upload;
+    if (file) {
+      const filePath = file.path;
+      upload = await uploadFile(filePath);
+    }
+    const prevUser = await User.findById(id);
+    const profileImg = prevUser.profileImg;
+    if (profileImg) {
+      await cloudinary.uploader.destroy(profileImg);
+    }
+    const updateduser = await User.findByIdAndUpdate(
+      id,
+      { fullname, bio, profileImg: upload?.public_id },
+      {
+        new: true,
+      }
+    );
+    return res
+      .status(200)
+      .json(new ApiResponse(200, updateduser, "User updated successfully"));
+  } catch (error) {
+    console.log(error);
+    return res
+      .status(500)
+      .json(
+        new ApiError(
+          500,
+          "Something went wrong updating the user profile",
+          error
+        )
+      );
+  }
+};
+
 export {
   logoutUser,
-  redirectURL,
-  oauthCallback,
-  SignUp,
+  signUp,
   loginUser,
-  getAllImage,
-  deleteAll,
-  updateProfile,
+  getUploads,
   addImage,
-  deleteUsers,
-  deleteImage,
   editImage,
-  getallUsers,
-  getUserDetail,
+  getAccountDetails,
+  toggleFollow,
+  deleteAccount,
+  getSavedImage,
+  updateUser,
+  deleteImage,
 };

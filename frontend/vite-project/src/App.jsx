@@ -1,44 +1,56 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import SignUp from "./Pages/SignUp";
-import Login from "./Pages/Login";
 import Navbar from "./Components/Navbar";
-import Upload from "./Components/Upload";
-import Gallery from "./Components/Gallery";
 import useApi from "./Hooks/useApi";
-import About from "./Components/About";
 import { useState } from "react";
-import CustomAlert from "./Components/CustomAlert";
-import ScrollingText from "./Components/ScrollingText";
+import BackToTop from "./Components/ToTop";
+import { BeforeUpload } from "./Components/Upload";
+import { HomePage } from "./Pages/Home";
+import Auth from "./Pages/Auth";
+import { ToastContainer } from "react-toastify";
+import Dashboard from "./Components/Dashboard";
+import EditProfile from "./Components/EditProfile";
 
 const App = () => {
   const [logout, setLogout] = useState(false);
-  const { response } = useApi(
-    `${import.meta.env.VITE_API_URL}/api/image/getAll`,
-    "get"
-  );
-  console.log(response);
-  const { response: data } = useApi(
-    `${import.meta.env.VITE_API_URL}/user/images`
-  );
 
-  const [data1, setData] = useState([]);
+  const { response: data } = useApi(
+    `${import.meta.env.VITE_BACKEND_URL}/user/images`
+  );
 
   return (
-    <div className="bg-[#0C1521]  h-screen">
+    <div className="dark:bg-[#111111]">
+      <ToastContainer position="top-right" autoClose={3000} />
       <Router>
-        <ScrollingText />
-
-        <Navbar setResponse={setData} setLogout={setLogout} />
+        <Navbar setLogout={setLogout} />
         <Routes>
-          {response && (
-            <Route
-              path="/"
-              element={<Gallery data={response.data} DeleteAndEdit={false} />}
-            />
-          )}
-          <Route path="/:search" element={<Gallery data={data1} />} />
-          <Route path="/upload" element={<Upload />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/edit-profile" element={<EditProfile />} />
+          <Route path="/sign-up" element={<Auth mode="signup" />} />
+          <Route path="/sign-in" element={<Auth mode="signin" />} />
+          <Route
+            path="/user"
+            element={
+              <HomePage
+                key="search"
+                backendApi={`${
+                  import.meta.env.VITE_BACKEND_URL
+                }/api/v1/image/search`}
+              />
+            }
+          />
+
+          <Route
+            path="/"
+            element={
+              <HomePage
+                key="home-root"
+                backendApi={`${import.meta.env.VITE_BACKEND_URL}/api/v1/image`}
+              />
+            }
+          />
+          <Route path="/user/upload" element={<BeforeUpload />} />
         </Routes>
+        <BackToTop />
       </Router>
     </div>
   );
