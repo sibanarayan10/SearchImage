@@ -1,6 +1,6 @@
 import mongoose, { Schema } from "mongoose";
-import { Image } from "./image.model.js";
-import { User } from "./user.model.js";
+import { Image } from "./Image.model.js";
+import { User } from "./User.model.js";
 
 const LikeSchema = new mongoose.Schema(
   {

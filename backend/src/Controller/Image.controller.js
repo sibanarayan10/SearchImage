@@ -1,8 +1,8 @@
-import { Image } from "../Models/image.model.js";
+import { Image } from "../Models/Image.model.js";
 import { ApiError } from "../Utils/ApiError.js";
 import { ApiResponse } from "../Utils/ApiResponse.js";
 import { Like } from "../Models/Like.model.js";
-import { User } from "../Models/user.model.js";
+import { User } from "../Models/User.model.js";
 import { Follow } from "../Models/Follow.model.js";
 
 const getSearchedImage = async (req, res) => {
