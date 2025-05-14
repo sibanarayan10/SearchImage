@@ -2,7 +2,6 @@ import { Router } from "express";
 import {
   loginUser,
   addImage,
-  editImage,
   logoutUser,
   signUp,
   toggleFollow,
@@ -21,9 +20,6 @@ const router = Router();
 
 router.route("/sign-up").post(signUp);
 router.route("/sign-in").post(loginUser);
-
-// router.route("/google/signup").get(redirectURL);
-// router.route("/oauthcallback").get(oauthCallback);
 
 router.route("/log-out").post(verifyJWT, logoutUser);
 
