@@ -1,19 +1,19 @@
-import React, { useContext, useState } from "react";
-import { Link, useLocation } from "react-router-dom";
-import SearchComponent from "./Search";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faTrash } from "@fortawesome/free-solid-svg-icons";
+import { React, useContext, useState, useEffect } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";
-
-import { LogOut, TableOfContents, UserRoundPen } from "lucide-react";
+import ThemeToggle from "./ThemeToggle";
+import { User, CircleUser, Album } from "lucide-react";
+import { TableOfContents } from "lucide-react";
 import { Context } from "../Context/globalContext";
 
-const Navbar = ({ setResponse, setLogout }) => {
+const Navbar = ({ setLogout }) => {
   const [isOpen, setIsOpen] = useState(true);
   const navItems = ["upload"];
   const { userAuth } = useContext(Context);
   const [navigate, setNavigate] = useState("");
   const location = useLocation();
+  const [isBackground, setIsBackground] = useState(false);
+  const navigateTo = useNavigate();
 
   const handleUserAuth = async () => {
     if (!userAuth) {
@@ -40,51 +40,97 @@ const Navbar = ({ setResponse, setLogout }) => {
   };
   const hideNavbar = ["/sign-up", "/sign-in"];
 
-  return hideNavbar.includes(location.pathname) ? null : (
-    <div className="flex justify-center">
-      <div className="bg-black shadow-lg container mx-auto max-w-screen-2xl w-screen fixed z-50">
-        <div className="flex   flex-row justify-between items-center max-[768px]:items-start border-b-2 border-gray-700 p-2 w-full bg-black/80">
+  useEffect(() => {
+    const handleScroll = () => {
+      // If you scroll down 50px, make it sticky
+      if (window.scrollY > 50) {
+        setIsBackground(true);
+      } else {
+        setIsBackground(false);
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll);
+
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+    };
+  }, [isBackground]);
+  const rawProfileImg = localStorage.getItem("profileImg");
+  const profileImg =
+    rawProfileImg && rawProfileImg !== "undefined" ? rawProfileImg : null;
+
+  return !hideNavbar.includes(location.pathname) ? (
+    <div
+      className={`${
+        isBackground
+          ? "bg-white dark:bg-[#111111] bg-opacity-[0.9] backdrop-blur"
+          : "bg-transparent"
+      } w-full fixed top-0 flex justify-center transition-all duration-300 z-[100]`}
+    >
+      <div className="container mx-auto w-full max-w-[1460px]">
+        <div className="flex flex-row justify-between items-center max-[768px]:items-start py-4 px-8 2xl:px-0 w-full">
           <div className="flex flex-row justify-start items-center min-[475px]:w-1/2 w-1/3 ">
-            <div className="logo flex items-center justify-center   p-2 md:w-1/3 ">
+            <div className="logo flex items-center justify-center py-2 md:w-1/3 ">
               <Link
                 to="/"
-                className="heading font-bold text-gray-100 hover:text-yellow-300 transition-all duration-300 font-serif w-full"
+                className="primaryIcon text-2xl text-[#111111] dark:text-gray-100 font-semibold hover:opacity-70 transition-all duration-300 w-full"
               >
-                SearchImage
+                <span className="max-[400px]:hidden">ImageGallery</span>
+                <Album size={30} className="min-[400px]:hidden" />
+              </Link>
+            </div>
+          </div>
+
+          <div className="flex flex-row items-center justify-end  gap-x-4 min-[475px]:w-1/2 w-2/3 ">
+            <div
+              className={`
+                  ${localStorage.getItem("user") ? "hidden" : "flex"}
+               justify-center items-center`}
+            >
+              <Link to="/sign-in">
+                <button
+                  type="button"
+                  className="flex p-1.5 text-center dark:text-white rounded-full transition-all duration-300 hover:bg-black/15 dark:hover:bg-white/10"
+                  onClick={handleUserAuth}
+                >
+                  <span>
+                    <User size={30} />
+                  </span>
+                </button>
               </Link>
             </div>
 
             <Link
-              to={`/upload`}
-              className="text-center text-gray-100 p-2 hover:bg-gray-800 rounded transition duration-300 font-medium capitalize ml-8 max-[400px]:ml-2 nav-items"
+              to={`/user/upload`}
+              className={`${
+                localStorage.getItem("user") ? "hidden sm:flex" : "hidden"
+              } bg-[#111111] dark:bg-white text-white dark:text-[#111111] font-medium ring-1 ring-[#111111] dark:ring-white hover:ring-0 text-center px-4 py-3 rounded-lg transition-all duration-300 capitalize`}
               onClick={() => setIsOpen(false)}
             >
               Upload
             </Link>
-          </div>
 
-          <div className="flex flex-row items-center justify-end  gap-x-2 min-[475px]:w-1/2 w-2/3 ">
-            <div className="flex justify-end items-center  shadow-md w-3/5 max-[400px]:w-2/3 ">
-              <SearchComponent setResponse={setResponse} />
-            </div>
+            <button
+              title="Profile"
+              onClick={() => navigateTo("/dashboard")}
+              className={`${
+                localStorage.getItem("user") ? "flex" : "hidden"
+              } h-10 w-10 rounded-full overflow-hidden`}
+            >
+              {profileImg ? (
+                <img
+                  src={`https://res.cloudinary.com/dewv14vkx/image/upload/v1/${profileImg}`}
+                  alt="profile"
+                  className="h-full w-full object-cover"
+                />
+              ) : (
+                <CircleUser className="h-full w-full dark:text-white" />
+              )}
+            </button>
 
-            {/* <div className="flex justify-center items-center">
-              <Link to="/sign-in">
-                <button
-                  type="button"
-                  className="text-center bg-yellow-500 hover:bg-yellow-400 text-gray-900 px-2 py-1 rounded transition duration-300 font-semibold nav-items"
-                  onClick={handleUserAuth}
-                >
-                  <span>
-                    {!userAuth ? (
-                      <UserRoundPen className="h-6 w-6 min-[400px]:h-4 min-[400px]:w-4 md:h-5 md:w-5"></UserRoundPen>
-                    ) : (
-                      <LogOut className="h-6 w-6 min-[400px]:h-4 min-[400px]:w-4 md:h-5 md:w-5"></LogOut>
-                    )}
-                  </span>
-                </button>
-              </Link>
-            </div> */}
+            <ThemeToggle />
+
             {/* <div className="hidden max-[768px]:flex">
               <TableOfContents
                 className="text-white hover:scale-110 transition-all duration-150 cursor-pointer w-4"
@@ -95,6 +141,8 @@ const Navbar = ({ setResponse, setLogout }) => {
         </div>
       </div>
     </div>
+  ) : (
+    <></>
   );
 };
 

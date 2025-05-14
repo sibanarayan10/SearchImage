@@ -4,9 +4,9 @@ const ScrollingText = () => {
   const [visible, setVisible] = useState(true);
   return (
     visible && (
-      <div className="w-full overflow-hidden bg-white py-2 relative ">
+      <div className="mx-auto w-full max-w-screen-2xl overflow-hidden bg-white py-2 relative ">
         <div className="whitespace-nowrap mx-8  overflow-hidden">
-          <p className="text-black text-lg text-sm animate-marquee font-normal ">
+          <p className="text-black text-sm animate-marquee font-normal ">
             🚀 Welcome to our website! ℹ️ This site is currently hosted on a
             free-tier plan, which may cause slight delays in loading times.
             Thank you for your patience. 🙌

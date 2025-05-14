@@ -1,80 +1,68 @@
-import React, { useContext, useState } from "react";
-import axios from "axios";
-import { useNavigate } from "react-router-dom";
-import { Context } from "../Context/globalContext";
-import { Loader2 } from "lucide-react";
+import React, { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { Loader2, Search, Image } from "lucide-react";
 
-const SearchComponent = ({ setResponse }) => {
+const SearchComponent = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const { setMsg, setSearchedImgs } = useContext(Context);
-  const navigate = useNavigate();
+  const navigate = useNavigate("/");
 
   const handleInputChange = (event) => {
     setSearchTerm(event.target.value);
   };
 
-  const handleSearchSubmit = async (event) => {
-    event.preventDefault();
+  const handleClick = (e) => {
+    e.preventDefault();
     if (!searchTerm) {
       setError("Please enter a search term.");
-      setMsg({ message: "Enter some valid thing", status: 400 });
 
       return;
     }
-    navigate(`/${searchTerm}`);
-
-    setLoading(true);
-    setError("");
-
-    try {
-      const response = await axios.post(
-        `${import.meta.env.VITE_API_URL}/api/image/getImage`,
-        { desc: searchTerm },
-        {
-          headers: { "Content-Type": "application/json" },
-          validateStatus: (status) => status > 0,
-        }
-      );
-
-      if (response.status === 200) {
-        setResponse(response.data.data);
-        setSearchedImgs(response.data.data);
-        setSearchTerm("");
-      } else {
-        setError("No images found.");
-      }
-    } catch (error) {
-      console.log(error);
-      setError("An error occurred while fetching data.");
-    } finally {
-      setLoading(false);
-    }
+    navigate(`/user?search=${searchTerm}`);
   };
 
   return (
-    <div>
-      <form onSubmit={handleSearchSubmit}>
+    <div className="bg-[url(./Img/SearchLight.jpg)] dark:bg-[url(./Img/SearchBg.jpg)] flex flex-col justify-center items-center h-[550px] w-full px-8 relative transition-all duration-500 bg-cover bg-center bg-no-repeat min-[2000px]:dark:bg-bottom">
+      <div className="absolute h-full w-full dark:bg-black/50"></div>
+      <div className="text-2xl min-[400px]:text-4xl text-[#111111] dark:text-white text-center font-medium pb-8 z-10">
+        <p>The best free stock images</p>
+        <p>Simplicity meets stunning imagery</p>
+      </div>
+      <form
+        className="flex items-center relative w-full max-w-xl rounded-lg bg-white group"
+        onSubmit={handleClick}
+      >
+        <Image className="absolute left-2 text-black/60 group-hover:group-hover:text-[#111111] transition-all duration-300 ml-2 -z-1" />
         <input
           type="text"
           value={searchTerm}
           name="desc"
           onChange={handleInputChange}
-          placeholder="Search for images..."
-          className="border rounded-lg md:px-4 px-2 md:py-2 py-1 nav-items "
+          placeholder="Search free images"
+          className="w-full rounded-lg px-14 py-4 outline-none focus:outline-none focus:ring-2 focus:ring-neutral-400 dark:focus:ring-zinc-300 text-[#111111] transition-all duration-300"
         />
         <button
           type="submit"
-          className="bg-blue-500 text-white md:p-2 p-1 rounded ml-1 nav-items"
+          className="absolute right-2 h-12 text-black/60 px-3 py-2 ml-1 rounded-lg hover:bg-black/10 transition-all duration-300 group-hover:text-[#111111]"
         >
           {loading ? (
-            <Loader2 className="min-[500px]:h-5 min-[500px]:w-5 h-2 w-2 animate-spin"></Loader2>
+            <Loader2 className="h-full w-full animate-spin"></Loader2>
           ) : (
-            "Search"
+            <Search />
           )}
         </button>
       </form>
+
+      <Link
+        to={`/user/upload`}
+        className={`${
+          localStorage.getItem("user") ? "flex sm:hidden" : "hidden"
+        } bg-[#111111] dark:bg-white text-white dark:text-[#111111] font-medium ring-1 ring-[#111111] dark:ring-white hover:ring-0 text-center px-4 py-3 rounded-lg transition-all duration-300 capitalize mt-8 z-50`}
+        onClick={() => setIsOpen(false)}
+      >
+        Upload Your Images
+      </Link>
     </div>
   );
 };
