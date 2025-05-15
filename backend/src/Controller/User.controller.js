@@ -111,6 +111,7 @@ const loginUser = async (req, res) => {
     }
     const options = {
       httpOnly: true,
+      sameSite:None,
     };
     return res
       .status(200)
