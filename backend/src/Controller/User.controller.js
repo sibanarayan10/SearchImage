@@ -110,8 +110,10 @@ const loginUser = async (req, res) => {
         .json(new ApiResponse(402, "user not authenticated!"));
     }
     const options = {
-      httpOnly: true,
-      sameSite:None,
+     
+       httpOnly: true,
+  secure: true,     
+  sameSite: "none", 
     };
     return res
       .status(200)
