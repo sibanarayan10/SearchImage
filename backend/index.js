@@ -16,7 +16,7 @@ const corsOptions = {
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"],
 };
-
+console.log( process.env.CORS_ORIGIN);
 console.log("I am connected");
 app.use(express.json({ limit: "16kb" }));
 app.use(express.urlencoded({ extended: true, limit: "16kb" }));
@@ -62,3 +62,4 @@ app.get("/", (req, res) => {
 // router set-up
 app.use("/api/v1/user", userRouter);
 app.use("/api/v1/image", imageRouter);
+
